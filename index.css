@@ -16,6 +16,13 @@ body {
   transform: scaleX(0);
 }
 
+#appointmentsContainer {
+  height: 100%;
+  margin-top: 82px;
+  overflow-y: scroll;
+  padding-bottom: 400px;
+}
+
 #leftContainer {
   position: fixed;
   top: 0;
@@ -26,13 +33,23 @@ body {
   transform-origin: left;
 }
 
+.leftbarButton {
+  height: 30px;
+  width: 30px;
+  border: none;
+}
+
 #closeLeftbar {
   position: fixed;
   top: 7px;
   left: 7px;
-  height: 30px;
-  width: 30px;
-  border: none;
+}
+
+#newAppointment {
+  position: fixed;
+  top: 7px;
+  left: 50px;
+
 }
 
 #chatContainer {
@@ -73,3 +90,91 @@ body {
   padding-right: 20px;
   line-height: 23px;
 }
+
+#leftbarTitle {
+  position: fixed;
+  margin-left: 7px;
+  margin-top: 50px;
+}
+
+.appointment {
+  width: 200px;
+  height: 43px;
+  background: #2e2d2d;
+  margin-left: 7px;
+  border-radius: 500px;
+  line-height: 40px;
+  padding-left: 15px;
+  padding-right: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.appointment:hover {
+  transform: scale(1.03);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
