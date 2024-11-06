@@ -29,11 +29,12 @@ body {
   background: #171717;
   height: 100%;
   width: 250px;
-  transition: transform 0.75s ease;
+  transition: transform 0.5s ease;
   transform-origin: left;
 }
 
 .leftbarButton {
+  cursor: pointer;
   height: 30px;
   width: 30px;
   border: none;
@@ -55,18 +56,18 @@ body {
 #chatContainer {
   display: flex;
   flex-direction: column;
-  background: lightsteelblue;
   margin: auto;
-  margin-top: 30px;
+  margin-top: 10px;
   width: 100%;
-  height: calc(100vh - 160px);
-  max-width: 640px;
+  height: calc(100vh - 132px);
+  max-width: 700px;
 }
 
 #chatArea {
   flex-grow: 1;
-  background: lightgreen;
   margin-bottom: 20px;
+  overflow: scroll;
+  max-height: calc(100vh - 220px);
 }
 
 #chatInput {
@@ -109,7 +110,7 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  margin-bottom: 15px;
+  margin-bottom: 13px;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -118,9 +119,33 @@ body {
   transform: scale(1.03);
 }
 
+.aiResponseContainer {
+  margin-top: 10px;
+  display: flex;
+  width: 100%;
+}
+
+.aiPfpContainer {
+
+}
+
+.aiPfp {
+  width: 50px;
+  border-radius: 100%;
+  margin-left: 5px;
+  margin-top: 5px;
+  margin-right: 5px;
+}
 
 
-
+.aiTextContainer {
+  padding-top: 15px;
+  padding-left: 10px;
+  word-wrap: break-word;
+  width: 100%;
+  padding-bottom: 10px;
+  line-height: 23px;
+}
 
 
 
