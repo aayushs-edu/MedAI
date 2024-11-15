@@ -35,22 +35,29 @@ body {
 
 .leftbarButton {
   cursor: pointer;
-  height: 30px;
-  width: 30px;
+  height: 27px;
+  width: 27px;
   border: none;
 }
 
 #closeLeftbar {
   position: fixed;
   top: 7px;
-  left: 7px;
+  left: 8px;
+  background: transparent;
+  background-image: url('images/sidebarToggle.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 #newAppointment {
   position: fixed;
   top: 7px;
-  left: 50px;
-
+  left: 47px;
+  background: transparent;
+  background-image: url('images/newChat.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 #chatContainer {
@@ -80,7 +87,7 @@ body {
   border: none;
   margin-top: auto;
   outline: none;
-  overflow-y: hidden;
+  overflow-y: scroll;
   padding-top: 17px;
   padding-bottom: 17px;
   field-sizing: content;
@@ -101,7 +108,7 @@ body {
 .appointment {
   width: 200px;
   height: 43px;
-  background: #2e2d2d;
+  background: #2F2F2F;
   margin-left: 7px;
   border-radius: 500px;
   line-height: 40px;
@@ -112,7 +119,7 @@ body {
   overflow: hidden;
   margin-bottom: 13px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
 }
 
 .appointment:hover {
@@ -139,13 +146,15 @@ body {
 
 
 .aiTextContainer {
-  padding-top: 16px;
-  padding-left: 10px;
+  padding-right: 15px;
+  padding-left: 15px;
   word-wrap: break-word;
-  width: 100%;
-  padding-bottom: 10px;
+  width: fit-content;
   line-height: 23px;
   margin-right: 70px;
+  margin-left: 5px;
+  background: #2F2F2F;
+  border-radius: 30px;
 }
 
 .userPfpContainer {
@@ -155,7 +164,8 @@ body {
 .userPfp {
   height: 50px;
   width: 50px;
-  background: #2e2d2d;
+  background: white;
+  color: black;
   border-radius: 100%;
   margin-left: 5px;
   margin-top: 4px;
@@ -168,72 +178,26 @@ body {
 
 
 .userResponseContainer {
-  margin-top: 10px;
+  margin-top: 15px;
   display: flex;
   width: 100%;
+  justify-content: flex-end;
 }
 
 .userTextContainer {
   padding-top: 16px;
-  padding-right: 10px;
+  padding-right: 15px;
+  padding-left: 15px;
+  padding-bottom: 16px;
   word-wrap: break-word;
-  width: 100%;
-  padding-bottom: 10px;
+  width: fit-content;
   line-height: 23px;
   float: right;
   margin-left: 70px;
+  margin-right: 5px;
+  background: #2F2F2F;
+  border-radius: 30px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
