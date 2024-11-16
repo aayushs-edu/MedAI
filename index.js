@@ -1,5 +1,4 @@
 import { OPENAI_API_KEY } from './env.js';
-
 const apiKey = OPENAI_API_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
@@ -21,7 +20,7 @@ newAppointment.addEventListener('click', function() {
                 <img class=aiPfp src="images/doctorPfp.png">
             </div>
             <div class="aiTextContainer">
-                <p>Hi! How are you feeling today?</p>
+                <p>Hello! How can I assist you today regarding health or medical information?</p>
             </div>
         </div>
     `;
@@ -188,7 +187,40 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
     }
 });
 
+const uploadButton = document.getElementById("fileUpload");
+const fileInput = document.getElementById("fileInput");
+uploadButton.addEventListener('click', () => {
+  fileInput.click();
+});
 
+
+fileInput.addEventListener('change', () => {
+    // Check if a file is selected
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        // Display the file name
+        uploadButton.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+    } else {
+        uploadButton.style.backgroundImage = `url('images/fileUpload.png')`;
+    }
+});
+
+const enterButton = document.getElementById("enterResponse");
+enterButton.addEventListener('click', async function() {
+  const text = chatInput.value;
+  if (text != "") {
+    chatInput.value = "";
+    console.log(text);
+    addUserResponse(text);
+    if (chatArea.children.length == 2) {
+        appointmentTitle = await getTitle();
+        intializeState();
+    }
+    addBlankAIResponse();
+    await getChatCompletion(text);
+    saveState()
+  }
+});
 
 
 

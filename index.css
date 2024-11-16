@@ -4,6 +4,7 @@ body {
   font-weight: 300;
   background-color: #212121;
   color: white;
+  overflow: hidden;
 }
 
 #title {
@@ -20,6 +21,7 @@ body {
   height: 100%;
   margin-top: 82px;
   overflow-y: scroll;
+  overflow-y: hidden;
   padding-bottom: 400px;
 }
 
@@ -73,8 +75,8 @@ body {
 #chatArea {
   flex-grow: 1;
   margin-bottom: 20px;
-  overflow: scroll;
   max-height: calc(100vh - 220px);
+  overflow-y: auto;
 }
 
 #chatInput {
@@ -87,15 +89,14 @@ body {
   border: none;
   margin-top: auto;
   outline: none;
-  overflow-y: scroll;
   padding-top: 17px;
   padding-bottom: 17px;
   field-sizing: content;
   max-height: 300px;
   border-radius: 30px;
   font-size: 16px;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 22px;
+  padding-right: 100px;
   line-height: 23px;
 }
 
@@ -127,7 +128,7 @@ body {
 }
 
 .aiResponseContainer {
-  margin-top: 10px;
+  margin-top: 15px;
   display: flex;
   width: 100%;
 }
@@ -198,6 +199,87 @@ body {
   background: #2F2F2F;
   border-radius: 30px;
 }
+
+#fileUpload {
+  position: absolute;
+  background: transparent;
+  border: none;
+  background-image: url('images/fileUpload.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 35px;
+  width: 35px;
+  cursor: pointer;
+  bottom: 32px;
+  border-radius: 100%;
+  background-size: 95%;
+  background-position: center 0px;
+  left: calc(50% + 295px);
+  border: 1px solid white;
+}
+
+#enterResponse {
+  position: absolute;
+  height: 35px;
+  width: 35px;
+  border: none;
+  border-radius: 100%;
+  bottom: 32px;
+  right: calc(50% - 375px);
+  cursor: pointer;
+  background-image: url('images/upArrow.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: 75%;
+  background-position: center center;
+}
+
+@media (max-width: 775px) {
+  #enterResponse {
+    right: 12px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
