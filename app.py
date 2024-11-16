@@ -18,6 +18,7 @@ def serve_index():
 @app.route('/reset', methods=['POST'])
 def reset():
     all_user_messages.clear()
+    print("All messages have been cleared: ", all_user_messages)
     return jsonify({"message": "All messages have been cleared."})
 
 @app.route('/nb', methods=['POST'])
@@ -54,6 +55,7 @@ def diagnose():
 
     # All symptoms as string
     all_symptoms = ' '.join(all_user_messages)
+    print("All symptoms: ", all_symptoms)
     
     # Transform new text data and make predictions
     new_text = [all_symptoms]
@@ -85,7 +87,7 @@ def diagnose():
     #     return jsonify(user_message)
     
     # Return the prediction as JSON
-    return jsonify("I have been diagnosed with " + str(list(predictions.keys())))
+    return jsonify("My symptoms indicate " + str(list(predictions.keys())))
 
 if __name__ == '__main__':
     app.run(debug=True)

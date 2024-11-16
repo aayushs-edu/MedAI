@@ -25,6 +25,13 @@ newAppointment.addEventListener('click', function() {
             </div>
         </div>
     `;
+    fetch('/reset', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify("")
+    })
 });
 
 async function getTitle(text) {
