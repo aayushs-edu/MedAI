@@ -305,7 +305,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initial height adjustment
   adjustHeight();
 });
-
+let containsImage = false;
+let image
 fileInput.addEventListener('change', () => {
     // Check if a file is selected
     if (fileInput.files.length > 0) {
@@ -322,12 +323,16 @@ fileInput.addEventListener('change', () => {
                       <button id="removeImage">❌</button>
                   </div>
               `;
-
+              image = event.target.result;
+              console.log(JSON.stringify(image));
+              containsImage = true;
               // Add a remove button to clear the preview
               const removeImage = document.getElementById('removeImage');
               removeImage.addEventListener('click', () => {
                   imagePreviewContainer.innerHTML = ''; // Clear preview
                   fileInput.value = ''; // Clear file input
+                  containsImage = false;
+                  image = null;
               });
           };
 
@@ -341,6 +346,7 @@ fileInput.addEventListener('change', () => {
 
 const enterButton = document.getElementById("enterResponse");
 enterButton.addEventListener('click', async function() {
+  console.log("Enter button clicked");
   const userText = chatInput.value;
   if (userText != "") {
     chatInput.value = "";
