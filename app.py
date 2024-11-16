@@ -59,6 +59,23 @@ def classify():
     
     image_bytes = request.data
     image = Image.open(BytesIO(image_bytes))
+
+    intial_labels = [
+        "throat",
+        "skin",
+        "lips",
+        "eyes"
+    ]
+
+    with model_lock:
+        category = cnn(image, candidate_labels=intial_labels)
+
+    input_image = None
+    print("Category: ", category[0]["label"])
+    if category[0]["label"] == "throat" or category[0]["label"] == "lips" or category[0]["label"] == "eyes":
+        input_image = image
+    else:
+        input_image = remove(image)
     
     # Use the preloaded classifier
     with model_lock:  # Ensure thread-safe inference

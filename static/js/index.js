@@ -151,7 +151,7 @@ async function getChatCompletion(text) {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
+        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
         { role: "user", content: text }
       ],
       stream: true
@@ -342,7 +342,7 @@ fileInput.addEventListener('change', () => {
 const enterButton = document.getElementById("enterResponse");
 enterButton.addEventListener('click', async function() {
   const userText = chatInput.value;
-  if (text != "") {
+  if (userText != "") {
     chatInput.value = "";
     console.log(userText);
     addUserResponse(userText);
@@ -367,6 +367,7 @@ enterButton.addEventListener('click', async function() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      console.log(response);
       return response.json(); // Parse JSON response
     })
     .then(async data => {
@@ -376,6 +377,37 @@ enterButton.addEventListener('click', async function() {
     .catch(error => {
         console.error('Error:', error);
     });
+
+    saveState()
+  }
+  else if (fileInput.files.length > 0) {
+    addUserFileResponse("File Uploaded");
+
+    if (chatArea.children.length == 2) {
+      appointmentTitle = await getTitle();
+      intializeState();
+    }
+
+    var file = fileInput.files[0];
+
+    const removeImage = document.getElementById('removeImage');
+    removeImage.click();
+    
+    // Send a POST request to the Flask backend
+    fetch('/cnn', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/octet-stream'
+        },
+        body: file
+    })
+    .then(response => response.json())
+    .then(async data => {
+        addBlankAIResponse();
+        console.log(data); // Handle the response (e.g., show predictions)
+        await getChatCompletion(JSON.stringify(data));
+    })
+    .catch(error => console.log('Error:', error));
 
     saveState()
   }
