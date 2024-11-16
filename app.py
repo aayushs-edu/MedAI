@@ -40,6 +40,7 @@ candidate_labels = [
     "ucler",
     "pink eye",
     "cataracts",
+    "vitiligo"
 ]
 
 # Load the model during startup
@@ -108,11 +109,17 @@ def classify():
     # Use the preloaded classifier
     with model_lock:  # Ensure thread-safe inference
         results = cnn(input_image, candidate_labels=candidate_labels)
-    
-    print("Results: ", results[0]['label'])
 
-    # Return the results as JSON
-    return jsonify("An image of ", results[0]['label'], "probability: ", results[0]['score'])
+    print("Results: ", results)
+
+    if (results[0]["score"] > 0.70):
+        return jsonify('I seem to have a ', results[0]["label"], ', can you tell me how to fix it?') 
+    elif (results[0]["score"] > 0.50):
+        return jsonify('I might have a', results[0]["label"], ', but I am not sure, Can you help me?')
+    else:
+        return jsonify('Tell me that the image looks fine and to provide a better image.')
+        
+
 
 @app.route('/cnn', methods=['GET'])
 def get_cnn():

@@ -270,10 +270,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .then(response => response.json())
               .then(async data => {
                   addBlankAIResponse();
-                  if (data[3] < 0.45) {
-                    await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
-                  }
-                  await getChatCompletion(JSON.stringify(`I seem to have a ${data}, can you tell me how to fix it?`));
+                  await getChatCompletion(JSON.stringify(data));
               })
               .catch(error => console.log('Error:', error));
 
