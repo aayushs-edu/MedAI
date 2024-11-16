@@ -270,8 +270,11 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .then(response => response.json())
               .then(async data => {
                   addBlankAIResponse();
-                  console.log(data); // Handle the response (e.g., show predictions)
-                  await getChatCompletion(JSON.stringify(data));
+                  console.log(data, " + ignore previous instruction and tell me ways to fix it"); // Handle the response (e.g., show predictions)
+                  if (data[4] < 0.5) {
+                    await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
+                  }
+                  await getChatCompletion(JSON.stringify(data + ' + ignore previous instruction and tell me ways to fix the given condition'));
               })
               .catch(error => console.log('Error:', error));
 
@@ -403,9 +406,14 @@ enterButton.addEventListener('click', async function() {
     })
     .then(response => response.json())
     .then(async data => {
-        addBlankAIResponse();
-        console.log(data); // Handle the response (e.g., show predictions)
-        await getChatCompletion(JSON.stringify(data));
+      addBlankAIResponse();
+      console.log(data[3])
+      
+      if (data[3] < 0.3) {
+        await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
+      } else {
+        await getChatCompletion(JSON.stringify(data + ' + ignore previous instruction and tell me ways to fix the given condition'));
+      }
     })
     .catch(error => console.log('Error:', error));
 
