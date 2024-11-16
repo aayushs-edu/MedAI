@@ -1,4 +1,5 @@
 import { OPENAI_API_KEY } from './env.js';
+
 const apiKey = OPENAI_API_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
@@ -17,7 +18,7 @@ newAppointment.addEventListener('click', function() {
     chatArea.innerHTML = `
         <div class="aiResponseContainer">
             <div class="aiPfpContainer">
-                <img class=aiPfp src="images/doctorPfp.png">
+                <img class=aiPfp src="{{ url_for('static', filename='images/doctorPfp.png') }}">
             </div>
             <div class="aiTextContainer">
                 <p>Hello! How can I assist you today regarding health or medical information?</p>
@@ -71,6 +72,7 @@ loadAppointments();
 function intializeState() {
     appointments.push([appointmentTitle, chatArea.innerHTML]);
     localStorage.setItem("appointments", JSON.stringify(appointments));
+
     loadAppointments();
 }
 
@@ -83,7 +85,7 @@ function addBlankAIResponse() {
     chatArea.innerHTML += `
         <div class="aiResponseContainer">
             <div class="aiPfpContainer">
-                <img class=aiPfp src="images/doctorPfp.png">
+                <img class=aiPfp src="{{ url_for('static', filename='images/doctorPfp.png') }}">
             </div>
             <div class="aiTextContainer"></div>
         </div>
@@ -118,7 +120,7 @@ async function getChatCompletion(text) {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a medical doctor. Give some possible illnesses and treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
+        { role: "system", content: "You are a medical doctor speaking to a patient. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
         { role: "user", content: text }
       ],
       stream: true
@@ -172,16 +174,41 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
     if (event.key === 'Enter') {
         if (!event.shiftKey) {
             event.preventDefault();
-            const text = chatInput.value;
+            const userText = chatInput.value;
             chatInput.value = "";
-            console.log(text);
-            addUserResponse(text);
+            console.log(userText);
+            addUserResponse(userText);
+
             if (chatArea.children.length == 2) {
                 appointmentTitle = await getTitle();
                 intializeState();
             }
+
             addBlankAIResponse();
-            await getChatCompletion(text);
+
+            // Run through naive bayes
+            // Send a POST request to the Flask backend
+            fetch('/nb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userText)
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json(); // Parse JSON response
+            })
+            .then(async data => {
+                console.log('Response from Flask:', data);
+                await getChatCompletion(JSON.stringify(data));
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
             saveState()
         }
     }
@@ -201,7 +228,7 @@ fileInput.addEventListener('change', () => {
         // Display the file name
         uploadButton.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
     } else {
-        uploadButton.style.backgroundImage = `url('images/fileUpload.png')`;
+        uploadButton.style.backgroundImage = `url('/static/images/fileUpload.png')`;
     }
 });
 

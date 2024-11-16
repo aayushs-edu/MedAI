@@ -47,7 +47,7 @@ body {
   top: 7px;
   left: 8px;
   background: transparent;
-  background-image: url('images/sidebarToggle.svg');
+  background-image: url('/static/images/sidebarToggle.svg');
   background-size: cover;
   background-repeat: no-repeat;
 }
@@ -57,7 +57,7 @@ body {
   top: 7px;
   left: 47px;
   background: transparent;
-  background-image: url('images/newChat.svg');
+  background-image: url('/static/images/newChat.svg');
   background-size: cover;
   background-repeat: no-repeat;
 }
@@ -204,7 +204,7 @@ body {
   position: absolute;
   background: transparent;
   border: none;
-  background-image: url('images/fileUpload.png');
+  background-image: url('/static/images/fileUpload.png');
   background-size: cover;
   background-repeat: no-repeat;
   height: 35px;
@@ -227,7 +227,7 @@ body {
   bottom: 32px;
   right: calc(50% - 375px);
   cursor: pointer;
-  background-image: url('images/upArrow.png');
+  background-image: url('/static/images/upArrow.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-size: 75%;
