@@ -7,6 +7,7 @@ from rembg import remove
 from io import BytesIO
 from PIL import Image
 import os
+import base64
 
 app = Flask(__name__)
 
@@ -50,16 +51,46 @@ def load_model():
             print("Loading model...")
             cnn = pipeline("zero-shot-image-classification", model="suinleelab/monet")
             print("Model loaded successfully!")
+def base64_to_bytesio(base64_string):
+    if isinstance(base64_string, bytes):
+        base64_string = base64_string.decode('utf-8')
+    # Remove the "data:image/jpeg;base64," or similar prefix (if it exists)
 
+    base64_string = base64_string.split(',')[1]
+    
+    # Log the length of the base64 string to ensure it's complete
+    print(f"Base64 string length: {len(base64_string)}")
+    print(f"Base64 preview: {base64_string[:100]}...")  # Print a small portion of the string for debugging
+
+    # Decode the base64 string to binary data
+    try:
+        image_data = base64.b64decode(base64_string)
+    except Exception as e:
+        print(f"Error decoding base64: {e}")
+        return None
+    # Use BytesIO to create an in-memory file-like object
+    try:
+        # Decode and verify image
+        image_bytesio = BytesIO(image_data)
+        image = Image.open(image_bytesio)
+        image.verify()
+        print("Image is valid!")
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    # Return the BytesIO object (the image data in memory)
+    return image_bytesio
 @app.route('/cnn', methods=['POST'])
 def classify():
     global cnn
     if cnn is None:
         return jsonify({"error": "Model not loaded yet"}), 500
-    
+    print("1")
     image_bytes = request.data
-    image = Image.open(BytesIO(image_bytes))
-    
+    image_bytesio = base64_to_bytesio(image_bytes)
+    print(image_bytesio)
+    image = Image.open(image_bytesio)
+    print(image)
     # Use the preloaded classifier
     with model_lock:  # Ensure thread-safe inference
         results = cnn(image, candidate_labels=candidate_labels)
@@ -110,15 +141,15 @@ def diagnose():
     top3_probabilities = [probabilities[0][index] for index in top3_indices]
     
     print("Model results for this message: ", top3_diagnoses, top3_probabilities)
-    
+
     # Calculate the mean probability
     max_probability = np.max(probabilities)
 
     # If mean probability is less than 0.05, do not append to all_user_messages
-    if max_probability > 0.05:
+    if max_probability > 0.15:
         all_user_messages.append(user_message)
     elif max_probability < 0.20:
-        return jsonify(user_message + "although I have not given enough symptoms, please remind me to provide more information")
+        return jsonify(user_message + "although I am not really sure. DEFINATELY REMIND ME TO PROVIDE MORE SYMPTOMS")
     else:
         return jsonify(user_message)
 
