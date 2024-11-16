@@ -1,4 +1,5 @@
-const OPENAI_API_KEY = "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";
+import { OPENAI_API_KEY } from './env.js';
+
 const apiKey = OPENAI_API_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
