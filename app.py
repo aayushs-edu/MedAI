@@ -209,10 +209,9 @@ def diagnose():
     # Return the prediction as JSON
     max_probability = np.max(top3_probabilities)
     if max_probability > 0.15:
-        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())))
+        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
         return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
-
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
