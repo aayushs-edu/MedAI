@@ -34,7 +34,7 @@ body {
   font-size: 4em;
   text-align: center;
   margin-top: 50px;
-  color: rgb(211, 206, 206);
+  color: rgb(202, 192, 192);
 }
 
 .squished {
@@ -99,9 +99,35 @@ body {
 
 #chatArea {
   flex-grow: 1;
-  margin-bottom: 30px;
-  max-height: calc(96vh - 220px);
+  margin-bottom: 40px;
+  max-height: calc(85vh - 220px);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y proximity;
+}
+
+#chatArea > div > div:last-child {
+  scroll-snap-align: end;
+}
+
+#chatArea::-webkit-scrollbar {
+  width: 12px;
+}
+
+#chatArea::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#chatArea::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+#chatArea::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+#chatArea::-webkit-scrollbar-button {
+  display: none;
 }
 
 #chatInput {
@@ -178,10 +204,6 @@ body {
   width: 100%;
 }
 
-.aiPfpContainer {
-
-}
-
 .aiPfp {
   width: 50px;
   border-radius: 100%;
@@ -216,7 +238,6 @@ body {
   margin-top: 4px;
   margin-right: 5px;
   margin-bottom: 4px;
-  border: 3px solid #171717;
 }
 
 .userImg {
@@ -240,13 +261,13 @@ body {
   padding-right: 15px;
   padding-left: 15px;
   padding-bottom: 16px;
-  word-wrap: break-word;
+  word-wrap: normal;
   width: fit-content;
   line-height: 23px;
   float: right;
   margin-left: 70px;
   margin-right: 5px;
-  background: #2f2f2f;
+  background: #5e5e5e;
   color: white;
   border-radius: 30px;
 }
@@ -262,6 +283,7 @@ body {
   background-repeat: no-repeat;
   background-color: transparent;
   margin-right: 15px; /* Space between file upload and send button */
+  margin-bottom: 5px;
 }
 
 
@@ -307,6 +329,7 @@ body {
   height: 35px;
   width: 35px;
   border: none;
+  margin-bottom: 5px;
   border-radius: 50%;
   cursor: pointer;
   background-image: url('/static/images/upArrow.png');

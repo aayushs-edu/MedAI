@@ -125,7 +125,9 @@ function addUserFileResponse(text) {
     reader.onload = function (event) {
         chatArea.innerHTML += `
             <div class="userResponseContainer">
-                <img class="userImg" src="${event.target.result}" alt="User Image" />
+                <div class="userTextContainer">
+                    <img class="userImg" src="${event.target.result}" alt="User Image" />
+                </div>
                 <div class="userPfpContainer">
                     <img class="userPfp" src="/static/images/user.png">
                 </div>
@@ -138,6 +140,7 @@ function addUserFileResponse(text) {
   }
 }
 
+
 async function getChatCompletion(text) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -148,7 +151,7 @@ async function getChatCompletion(text) {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a medical doctor speaking to a patient. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
+        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
         { role: "user", content: text }
       ],
       stream: true
@@ -188,6 +191,9 @@ async function getChatCompletion(text) {
             const currResponse = currResponseCont.getElementsByClassName("aiResponseContainer")[currResponseCont.getElementsByClassName("aiResponseContainer").length - 1];
             const currResponseText = currResponse.children[currResponse.children.length - 1];
             currResponseText.innerHTML = currentHTML;
+
+            // scroll to bottom if isScrolledToBottom is true
+            chatArea.scrollTo(0, chatArea.scrollHeight);
           }
         } catch (error) {
           console.error("Error parsing JSON:", error, "Chunk:", jsonString);
@@ -248,7 +254,10 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
                 intializeState();
               }
 
-              
+              var file = fileInput.files[0];
+
+              const removeImage = document.getElementById('removeImage');
+              removeImage.click();
               
               // Send a POST request to the Flask backend
               fetch('/cnn', {
@@ -256,7 +265,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
                   headers: {
                       'Content-Type': 'application/octet-stream'
                   },
-                  body: fileInput.files[0]
+                  body: file
               })
               .then(response => response.json())
               .then(async data => {
