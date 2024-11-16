@@ -38,7 +38,6 @@ candidate_labels = [
     "canker sore",
     "mucocele",
     "ucler",
-    "athlete's foot",
     "pink eye",
     "cataracts",
 ]
@@ -108,12 +107,12 @@ def classify():
     
     # Use the preloaded classifier
     with model_lock:  # Ensure thread-safe inference
-        results = cnn(image, candidate_labels=candidate_labels)
+        results = cnn(input_image, candidate_labels=candidate_labels)
     
     print("Results: ", results[0]['label'])
 
     # Return the results as JSON
-    return jsonify("An image of ", results[0]['label'])
+    return jsonify("An image of ", results[0]['label'], "probability: ", results[0]['score'])
 
 @app.route('/cnn', methods=['GET'])
 def get_cnn():
