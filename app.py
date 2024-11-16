@@ -1,15 +1,82 @@
 from flask import Flask, request, jsonify, render_template
 import joblib  # or whichever library you used to save your model
 import numpy as np
+from transformers import pipeline
+import threading
+from rembg import remove
+from io import BytesIO
+from PIL import Image
+import os
 
 app = Flask(__name__)
 
-# Load the model and TF-IDF vectorizer
+# NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
 
-# Naive bayes
 all_user_messages = []
+
+# CNN
+cnn = None
+model_lock = threading.Lock()
+candidate_labels = [
+    "acne",
+    "eczema",
+    "psoriasis",
+    "dermatitis",
+    "rosacea",
+    "fungal infection",
+    "melanoma",
+    "skin cancer",
+    "rashes",
+    "cellulitis",
+    "keratosis",
+    "oily skin",
+    "dry skin",
+    "strep throat",
+    "canker sore",
+    "mucocele",
+    "ucler",
+    "athlete's foot",
+    "pink eye",
+    "cataracts",
+]
+
+# Load the model during startup
+def load_model():
+    global cnn
+    with model_lock:
+        if cnn is None:
+            print("Loading model...")
+            cnn = pipeline("zero-shot-image-classification", model="suinleelab/monet")
+            print("Model loaded successfully!")
+
+@app.route('/cnn', methods=['POST'])
+def classify():
+    global cnn
+    if cnn is None:
+        return jsonify({"error": "Model not loaded yet"}), 500
+    
+    image_bytes = request.data
+    image = Image.open(BytesIO(image_bytes))
+    
+    # Use the preloaded classifier
+    with model_lock:  # Ensure thread-safe inference
+        results = cnn(image, candidate_labels=candidate_labels)
+    
+    print("Results: ", results[0]['label'])
+
+    # Return the results as JSON
+    return jsonify("An image of ", results[0]['label'])
+
+@app.route('/cnn', methods=['GET'])
+def get_cnn():
+    global cnn
+    if cnn is None:
+        return jsonify({"error": "Model not loaded yet"}), 500
+    else :
+        return jsonify({"message": "Model is loaded."})
+    
 
 @app.route("/")
 def serve_index():
@@ -90,4 +157,5 @@ def diagnose():
     return jsonify("My symptoms indicate " + str(list(predictions.keys())))
 
 if __name__ == '__main__':
+    threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)

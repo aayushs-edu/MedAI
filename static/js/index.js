@@ -117,6 +117,33 @@ function addUserResponse(text) {
     `
 }
 
+function addUserFileResponse() {
+  if (fileInput.files[0]) {
+    // Create a FileReader to load and display the image
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+        chatArea.innerHTML += `
+            <div class="userResponseContainer">
+                <div class="userTextContainer">
+                    <div class="userText">
+                        <img class="userImg" src="${event.target.result}" alt="User Image" />
+                    </div>
+                </div>
+                <div class="userPfpContainer">
+                    <div class="userPfp">
+                        You
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    // Read the file as a data URL (base64)
+    reader.readAsDataURL(fileInput.files[0]);
+  }
+}
+
 async function getChatCompletion(text) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -182,41 +209,70 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
         if (!event.shiftKey) {
             event.preventDefault();
             const userText = chatInput.value;
-            chatInput.value = "";
-            console.log(userText);
-            addUserResponse(userText);
+            if (userText != "") {
+              chatInput.value = "";
+              console.log(userText);
+              addUserResponse(userText);
 
-            if (chatArea.children.length == 2) {
+              if (chatArea.children.length == 2) {
+                  appointmentTitle = await getTitle();
+                  intializeState();
+              }
+
+              addBlankAIResponse();
+
+              // Run through naive bayes
+              // Send a POST request to the Flask backend
+              fetch('/nb', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(userText)
+              })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // Parse JSON response
+              })
+              .then(async data => {
+                  console.log('Response from Flask:', data);
+                  await getChatCompletion(JSON.stringify(data));
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+              });
+
+              saveState()
+            }
+            else if (fileInput.files.length > 0) {
+              addUserResponse("File Uploaded");
+
+              if (chatArea.children.length == 2) {
                 appointmentTitle = await getTitle();
                 intializeState();
-            }
-
-            addBlankAIResponse();
-
-            // Run through naive bayes
-            // Send a POST request to the Flask backend
-            fetch('/nb', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userText)
-            })
-            .then(response => {
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
               }
-              return response.json(); // Parse JSON response
-            })
-            .then(async data => {
-                console.log('Response from Flask:', data);
-                await getChatCompletion(JSON.stringify(data));
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
 
-            saveState()
+              addBlankAIResponse();
+              
+              // Send a POST request to the Flask backend
+              fetch('/cnn', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/octet-stream'
+                  },
+                  body: fileInput.files[0]
+              })
+              .then(response => response.json())
+              .then(async data => {
+                  console.log(data); // Handle the response (e.g., show predictions)
+                  await getChatCompletion(JSON.stringify(data));
+              })
+              .catch(error => console.log('Error:', error));
+
+              saveState()
+            }
         }
     }
 });
@@ -241,17 +297,42 @@ fileInput.addEventListener('change', () => {
 
 const enterButton = document.getElementById("enterResponse");
 enterButton.addEventListener('click', async function() {
-  const text = chatInput.value;
+  const userText = chatInput.value;
   if (text != "") {
     chatInput.value = "";
-    console.log(text);
-    addUserResponse(text);
+    console.log(userText);
+    addUserResponse(userText);
+
     if (chatArea.children.length == 2) {
         appointmentTitle = await getTitle();
         intializeState();
     }
+
     addBlankAIResponse();
-    await getChatCompletion(text);
+
+    // Run through naive bayes
+    // Send a POST request to the Flask backend
+    fetch('/nb', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userText)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json(); // Parse JSON response
+    })
+    .then(async data => {
+        console.log('Response from Flask:', data);
+        await getChatCompletion(JSON.stringify(data));
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
     saveState()
   }
 });
