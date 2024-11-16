@@ -1,13 +1,9 @@
-Flasklask
+Flask
 joblib
 numpy
 transformers
-threading
 rembg
 Pillow
-base64
-os
-io
-PIL
 matplotlib
+scikit-learn
 gunicorn
