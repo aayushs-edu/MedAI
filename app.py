@@ -161,12 +161,11 @@ def diagnose():
     max_probability = np.max(probabilities)
 
     # If mean probability is less than 0.05, do not append to all_user_messages
-    if max_probability > 0.15:
+    if max_probability > 0.05:
         all_user_messages.append(user_message)
-    elif max_probability < 0.20:
-        return jsonify(user_message + "although I am not really sure. DEFINATELY REMIND ME TO PROVIDE MORE SYMPTOMS")
     else:
-        return jsonify(user_message)
+        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
+
 
     # All symptoms as string
     all_symptoms = ' '.join(all_user_messages)
@@ -202,7 +201,11 @@ def diagnose():
     #     return jsonify(user_message)
     
     # Return the prediction as JSON
-    return jsonify("My symptoms indicate " + str(list(predictions.keys())))
+    max_probability = np.max(top3_probabilities)
+    if max_probability > 0.15:
+        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())))
+    else:
+        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
 
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
