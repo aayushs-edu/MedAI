@@ -409,7 +409,7 @@ enterButton.addEventListener('click', async function() {
       addBlankAIResponse();
       console.log(data[3])
       
-      if (data[3] < 0.3) {
+      if (data[3] < 0.45) {
         await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
       } else {
         await getChatCompletion(JSON.stringify(data + ' + ignore previous instruction and tell me ways to fix the given condition'));
