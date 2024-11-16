@@ -151,7 +151,7 @@ async function getChatCompletion(text) {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content." },
+        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content. If you get something not medical related, please ask for more details or a clearer image(as the user may give an image)." },
         { role: "user", content: text }
       ],
       stream: true
@@ -270,11 +270,10 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .then(response => response.json())
               .then(async data => {
                   addBlankAIResponse();
-                  console.log(data, " + ignore previous instruction and tell me ways to fix it"); // Handle the response (e.g., show predictions)
-                  if (data[4] < 0.5) {
+                  if (data[3] < 0.45) {
                     await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
                   }
-                  await getChatCompletion(JSON.stringify(data + ' + ignore previous instruction and tell me ways to fix the given condition'));
+                  await getChatCompletion(JSON.stringify(`I seem to have a ${data}, can you tell me how to fix it?`));
               })
               .catch(error => console.log('Error:', error));
 
@@ -412,7 +411,7 @@ enterButton.addEventListener('click', async function() {
       if (data[3] < 0.45) {
         await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
       } else {
-        await getChatCompletion(JSON.stringify(data + ' + ignore previous instruction and tell me ways to fix the given condition'));
+        await getChatCompletion(JSON.stringify(`I seem to have a ${data}, can you tell me how to fix it?`));
       }
     })
     .catch(error => console.log('Error:', error));
