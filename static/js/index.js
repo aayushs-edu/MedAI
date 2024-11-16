@@ -190,7 +190,6 @@ async function getChatCompletion(text) {
           if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
             const content = json.choices[0].delta.content;
             currentHTML += content;
-            console.log(content)
             const currResponseCont = document.getElementById("chatArea");
             const currResponse = currResponseCont.children[currResponseCont.children.length - 1];
             const currResponseText = currResponse.children[currResponse.children.length - 1];
@@ -234,6 +233,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
                 if (!response.ok) {
                   throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                console.log(response);
                 return response.json(); // Parse JSON response
               })
               .then(async data => {

@@ -110,13 +110,15 @@ def diagnose():
     top3_probabilities = [probabilities[0][index] for index in top3_indices]
     
     print("Model results for this message: ", top3_diagnoses, top3_probabilities)
-
+    
     # Calculate the mean probability
     max_probability = np.max(probabilities)
 
     # If mean probability is less than 0.05, do not append to all_user_messages
     if max_probability > 0.05:
         all_user_messages.append(user_message)
+    elif max_probability < 0.20:
+        return jsonify(user_message + "although I have not given enough symptoms, please remind me to provide more information")
     else:
         return jsonify(user_message)
 
