@@ -10,28 +10,30 @@ const appointmentsContainer = document.getElementById("appointmentsContainer");
 
 var appointmentTitle;
 
+const DOCTOR_PFP_URL = '/static/images/doctorPfp.png';
+
 closeLeftbar.addEventListener('click', function() {
     leftContainer.classList.toggle("squished");
 });
 
 newAppointment.addEventListener('click', function() {
-    chatArea.innerHTML = `
-        <div class="aiResponseContainer">
-            <div class="aiPfpContainer">
-                <img class=aiPfp src="{{ url_for('static', filename='images/doctorPfp.png') }}">
-            </div>
-            <div class="aiTextContainer">
-                <p>Hello! How can I assist you today regarding health or medical information?</p>
-            </div>
-        </div>
-    `;
-    fetch('/reset', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify("")
-    })
+  chatArea.innerHTML = `
+      <div class="aiResponseContainer">
+          <div class="aiPfpContainer">
+              <img class="aiPfp" src="${DOCTOR_PFP_URL}">
+          </div>
+          <div class="aiTextContainer">
+              <p>Hello! How can I assist you today regarding health or medical information?</p>
+          </div>
+      </div>
+  `;
+  fetch('/reset', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify("")
+  })
 });
 
 async function getTitle(text) {
@@ -89,14 +91,14 @@ function saveState() {
 }
 
 function addBlankAIResponse() {
-    chatArea.innerHTML += `
-        <div class="aiResponseContainer">
-            <div class="aiPfpContainer">
-                <img class=aiPfp src="{{ url_for('static', filename='images/doctorPfp.png') }}">
-            </div>
-            <div class="aiTextContainer"></div>
-        </div>
-    `
+  chatArea.innerHTML += `
+      <div class="aiResponseContainer">
+          <div class="aiPfpContainer">
+              <img class="aiPfp" src="${DOCTOR_PFP_URL}">
+          </div>
+          <div class="aiTextContainer"></div>
+      </div>
+  `
 }
 
 function addUserResponse(text) {
@@ -117,7 +119,7 @@ function addUserResponse(text) {
     `
 }
 
-function addUserFileResponse() {
+function addUserFileResponse(text) {
   if (fileInput.files[0]) {
     // Create a FileReader to load and display the image
     const reader = new FileReader();
@@ -125,11 +127,7 @@ function addUserFileResponse() {
     reader.onload = function (event) {
         chatArea.innerHTML += `
             <div class="userResponseContainer">
-                <div class="userTextContainer">
-                    <div class="userText">
-                        <img class="userImg" src="${event.target.result}" alt="User Image" />
-                    </div>
-                </div>
+                <img class="userImg" src="${event.target.result}" alt="User Image" />
                 <div class="userPfpContainer">
                     <div class="userPfp">
                         You
@@ -192,7 +190,7 @@ async function getChatCompletion(text) {
             currentHTML += content;
             console.log(content)
             const currResponseCont = document.getElementById("chatArea");
-            const currResponse = currResponseCont.children[currResponseCont.children.length - 1];
+            const currResponse = currResponseCont.getElementsByClassName("aiResponseContainer")[currResponseCont.getElementsByClassName("aiResponseContainer").length - 1];
             const currResponseText = currResponse.children[currResponse.children.length - 1];
             currResponseText.innerHTML = currentHTML;
           }
@@ -247,14 +245,14 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               saveState()
             }
             else if (fileInput.files.length > 0) {
-              addUserResponse("File Uploaded");
+              addUserFileResponse("File Uploaded");
 
               if (chatArea.children.length == 2) {
                 appointmentTitle = await getTitle();
                 intializeState();
               }
 
-              addBlankAIResponse();
+              
               
               // Send a POST request to the Flask backend
               fetch('/cnn', {
@@ -266,6 +264,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               })
               .then(response => response.json())
               .then(async data => {
+                  addBlankAIResponse();
                   console.log(data); // Handle the response (e.g., show predictions)
                   await getChatCompletion(JSON.stringify(data));
               })
@@ -283,13 +282,53 @@ uploadButton.addEventListener('click', () => {
   fileInput.click();
 });
 
+const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('chatInput');
+  
+  function adjustHeight() {
+      // Reset height to auto first
+      textarea.style.height = 'auto';
+      // Set new height based on scrollHeight
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+  }
+  
+  // Add input event listener
+  textarea.addEventListener('input', adjustHeight);
+  
+  // Initial height adjustment
+  adjustHeight();
+});
 
 fileInput.addEventListener('change', () => {
     // Check if a file is selected
     if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
         // Display the file name
-        uploadButton.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+
+          reader.onload = function (event) {
+              // Display the image preview
+              imagePreviewContainer.innerHTML = `
+                  <div class="imagePreview">
+                      <img src="${event.target.result}" alt="Selected Image" />
+                      <button id="removeImage">❌</button>
+                  </div>
+              `;
+
+              // Add a remove button to clear the preview
+              const removeImage = document.getElementById('removeImage');
+              removeImage.addEventListener('click', () => {
+                  imagePreviewContainer.innerHTML = ''; // Clear preview
+                  fileInput.value = ''; // Clear file input
+              });
+          };
+
+          // Read the file as a data URL
+        reader.readAsDataURL(file);
+      };
     } else {
         uploadButton.style.backgroundImage = `url('/static/images/fileUpload.png')`;
     }
