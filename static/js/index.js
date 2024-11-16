@@ -110,9 +110,7 @@ function addUserResponse(text) {
                 </div>
             </div>
             <div class="userPfpContainer">
-                <div class="userPfp">
-                    You
-                </div>
+                <img class="userPfp" src="/static/images/user.png">
             </div>
         </div>
 
@@ -129,9 +127,7 @@ function addUserFileResponse(text) {
             <div class="userResponseContainer">
                 <img class="userImg" src="${event.target.result}" alt="User Image" />
                 <div class="userPfpContainer">
-                    <div class="userPfp">
-                        You
-                    </div>
+                    <img class="userPfp" src="/static/images/user.png">
                 </div>
             </div>
         `;
