@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  model_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.model
+    container_name: model_service
+    ports:
+      - "5001:5001"
+  
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: med_ai
+    depends_on:
+      - model_service
+    ports:
+      - "5000:5000"

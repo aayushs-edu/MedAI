@@ -264,6 +264,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .catch(error => {
                   console.error('Error:', error);
               });
+              saveState(currentChat);
             }
             else if (fileInput.files.length > 0) {
               addUserFileResponse("File Uploaded");
@@ -294,7 +295,6 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               })
               .catch(error => console.log('Error:', error));
             }
-            saveState(currentChat)
         }
     }
 });
@@ -395,7 +395,7 @@ enterButton.addEventListener('click', async function() {
     .catch(error => {
         console.error('Error:', error);
     });
-
+    saveState(currentChat);
   }
   else if (fileInput.files.length > 0) {
     addUserFileResponse("File Uploaded");
@@ -432,7 +432,7 @@ enterButton.addEventListener('click', async function() {
     .catch(error => console.log('Error:', error));
 
   }
-  saveState(currentChat);
+  
 });
 
 
