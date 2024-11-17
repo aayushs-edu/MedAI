@@ -124,7 +124,7 @@ def classify():
         
 
 
-@app.route('/cnn', methods=['GET'])
+@app.route('/cnnGET', methods=['GET'])
 def get_cnn():
     global cnn
     if cnn is None:
