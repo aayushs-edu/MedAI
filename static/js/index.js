@@ -1,7 +1,22 @@
-const apiKey = window.env.SECRET_KEY;
-if (apiKey){
-    console.log("api")
+async function fetchSecretKey() {
+    try {
+        const response = await fetch('/get-secret-key');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Secret Key:", data.secretKey);
+
+        // Use the secret key in your JS logic
+        return data.secretKey;
+    } catch (error) {
+        console.error("Error fetching secret key:", error);
+    }
 }
+
+// Call the function to retrieve and use the secret key
+const apiKey
+    fetchSecretKey();
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
 const leftContainer = document.getElementById("leftContainer");
