@@ -170,7 +170,7 @@ def diagnose():
     if max_probability > 0.05:
         all_user_messages.append(user_message)
     else:
-        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
+        return jsonify(user_message)
 
 
     # All symptoms as string

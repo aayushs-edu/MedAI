@@ -34,7 +34,15 @@ body {
   font-size: 4em;
   text-align: center;
   margin-top: 50px;
-  color: rgb(202, 192, 192);
+  color: rgb(218, 217, 217);
+}
+
+#subtitle {
+  font-family: "Lobster", sans-serif;
+  font-size: 2em;
+  text-align: center;
+  margin-top: 10px;
+  color: rgb(192, 180, 180);
 }
 
 .squished {
@@ -175,9 +183,12 @@ body {
 }
 
 #leftbarTitle {
+  font-family: "Lobster", sans-serif;
   position: fixed;
   margin-left: 7px;
   margin-top: 50px;
+  font-size: 28px;
+  color: white;
 }
 
 .appointment {
@@ -195,6 +206,15 @@ body {
   margin-bottom: 13px;
   cursor: pointer;
   transition: transform 0.15s ease;
+}
+
+.date {
+  font-family: "Lobster", sans-serif;
+  font-size: 20px;
+  color: #5e5e5e;
+  margin-left: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .appointment:hover {
