@@ -1,2 +1,4 @@
+env.js
 .venv
 __pycache__
+static/js/env.js
