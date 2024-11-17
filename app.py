@@ -80,6 +80,9 @@ def base64_to_bytesio(base64_string):
         return None
     # Return the BytesIO object (the image data in memory)
     return image_bytesio
+@app.route("/")
+def index():
+    return render_template("index.html", OPENAI_SECRET_KEY=os.environ.get("OPENAI_SECRET_KEY"))
 @app.route('/cnn', methods=['POST'])
 def classify():
     global cnn
