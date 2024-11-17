@@ -1,4 +1,4 @@
-const apiKey = window.env.OPENAI_API_KEY;
+const apiKey = window.env.SECRET_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
