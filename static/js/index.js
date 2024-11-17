@@ -1,5 +1,7 @@
 const apiKey = window.env.SECRET_KEY;
-
+if (apiKey){
+    console.log("api")
+}
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
 const leftContainer = document.getElementById("leftContainer");
