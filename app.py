@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify, render_template
 import joblib  # or whichever library you used to save your model
 import numpy as np
-from transformers import pipeline
+from transformers import pipeline, AutoModelForZeroShotImageClassification, AutoTokenizer, AutoImageProcessor
 import threading
 from rembg import remove
 from io import BytesIO
 from PIL import Image
 import os
 import base64
+import torch
 
 app = Flask(__name__)
 
@@ -37,7 +38,6 @@ candidate_labels = [
     "strep throat",
     "canker sore",
     "mucocele",
-    "ucler",
     "pink eye",
     "cataracts",
     "vitiligo"
@@ -49,8 +49,29 @@ def load_model():
     with model_lock:
         if cnn is None:
             print("Loading model...")
-            cnn = pipeline("zero-shot-image-classification", model="suinleelab/monet")
+
+            model = AutoModelForZeroShotImageClassification.from_pretrained(
+                "suinleelab/monet"
+            )
+            tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
+            image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
+
+            # Apply dynamic quantization
+            quantized_model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8
+            )
+
+            # Create the pipeline with the quantized model
+            cnn = pipeline(
+                "zero-shot-image-classification",
+                model=quantized_model,
+                tokenizer=tokenizer,
+                image_processor=image_processor
+            )
+
             print("Model loaded successfully!")
+
+
 def base64_to_bytesio(base64_string):
     if isinstance(base64_string, bytes):
         base64_string = base64_string.decode('utf-8')
@@ -80,9 +101,6 @@ def base64_to_bytesio(base64_string):
         return None
     # Return the BytesIO object (the image data in memory)
     return image_bytesio
-@app.route("/")
-def index():
-    return render_template("index.html", OPENAI_SECRET_KEY=os.environ.get("OPENAI_SECRET_KEY"))
 @app.route('/cnn', methods=['POST'])
 def classify():
     global cnn
@@ -115,16 +133,16 @@ def classify():
 
     print("Results: ", results)
 
-    if (results[0]["score"] > 0.70):
-        return jsonify('I seem to have a ', results[0]["label"], ', can you tell me how to fix it?') 
-    elif (results[0]["score"] > 0.50):
-        return jsonify('I might have a', results[0]["label"], ', but I am not sure, Can you help me?')
+    if (results[0]["score"] > 0.60):
+        return jsonify(f'I seem to have a {results[0]["label"]} can you tell me how to fix it?') 
+    elif (results[0]["score"] > 0.30):
+        return jsonify(f'I might have a {results[0]["label"]}, but it could also be a {results[1]["label"]} Can you tell me how to treat it?')
     else:
-        return jsonify('Tell me that the image looks fine and to provide a better image.')
-        
+        return jsonify('There seems to be nothing wrong with the image I gave you. Can you tell me how to stay healthy?')
+  
 
 
-@app.route('/cnnGET', methods=['GET'])
+@app.route('/cnn', methods=['GET'])
 def get_cnn():
     global cnn
     if cnn is None:
@@ -173,7 +191,7 @@ def diagnose():
     if max_probability > 0.05:
         all_user_messages.append(user_message)
     else:
-        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
+        return jsonify(user_message)
 
 
     # All symptoms as string
@@ -197,7 +215,7 @@ def diagnose():
     predictions = {}
     # Print the top 3 diagnoses with their probabilities
     for diagnosis, prob in zip(top3_diagnoses, top3_probabilities):
-        predictions.update({diagnosis: prob})
+        predictions.update({str(diagnosis): float(prob)})
 
     # Sort predictions by value in descending order
     sorted_predictions = dict(sorted(predictions.items(), key=lambda item: item[1], reverse=True))
@@ -216,7 +234,7 @@ def diagnose():
     elif len(all_user_messages) > 3:
         return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
-        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
+        return jsonify(user_message)
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
