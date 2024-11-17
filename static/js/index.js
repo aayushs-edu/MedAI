@@ -1,4 +1,6 @@
-const apiKey = process.env.OPENAI_API_KEY;
+import { OPENAI_API_KEY } from './env.js';
+
+const apiKey = OPENAI_API_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
