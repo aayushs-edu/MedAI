@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, CORS
+from flask import Flask, request, jsonify, render_template
 import joblib  # or whichever library you used to save your model
 import numpy as np
 from transformers import pipeline
@@ -10,7 +10,7 @@ import os
 import base64
 
 app = Flask(__name__)
-CORS(app)
+
 # NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
