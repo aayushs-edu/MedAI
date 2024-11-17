@@ -5,5 +5,5 @@ transformers
 rembg
 Pillow
 scikit-learn
-tensorflow
+tf-keras
 gunicorn
