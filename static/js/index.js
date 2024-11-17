@@ -15,8 +15,9 @@ async function fetchSecretKey() {
 }
 
 // Call the function to retrieve and use the secret key
+let apiKey;
 (async () => {
-  const apiKey = await fetchSecretKey();
+  apiKey = await fetchSecretKey();
   if (apiKey) {
       console.log("Retrieved API Key:", apiKey);
   }
@@ -58,7 +59,6 @@ newAppointment.addEventListener('click', function() {
 
 async function getTitle(text) {
     var text = chatArea.children[1].children[0].textContent.trim();
-    console.log(apiKey);
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
