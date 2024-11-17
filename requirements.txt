@@ -6,5 +6,4 @@ rembg
 Pillow
 scikit-learn
 gunicorn
-tensorflow
 tf-keras
