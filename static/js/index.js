@@ -15,8 +15,7 @@ async function fetchSecretKey() {
 }
 
 // Call the function to retrieve and use the secret key
-const apiKey
-    fetchSecretKey();
+const apiKey = fetchSecretKey();
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
 const leftContainer = document.getElementById("leftContainer");
