@@ -6,4 +6,3 @@ rembg
 Pillow
 scikit-learn
 gunicorn
-tf-keras
