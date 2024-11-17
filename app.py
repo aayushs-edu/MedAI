@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
-tfidf = joblib.load('tfidf_vectorizer.pkl')
+tfidf = joblib.load('tfidf_vectorizer.pkl') 
 
 all_user_messages = []
 
@@ -167,7 +167,7 @@ def diagnose():
     max_probability = np.max(probabilities)
 
     # If mean probability is less than 0.05, do not append to all_user_messages
-    if max_probability > 0.05:
+    if max_probability > 0.07:
         all_user_messages.append(user_message)
     else:
         return jsonify(user_message)
@@ -208,12 +208,16 @@ def diagnose():
     
     # Return the prediction as JSON
     max_probability = np.max(top3_probabilities)
-    if max_probability > 0.15:
-        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
+    if max_probability > 0.125:
+        print("1")
+        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses. Also mention that the last one has a very low probability")
     elif len(all_user_messages) > 3:
-        return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
+        print('2')
+        return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Tell me to provide more symptoms. Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
-        return jsonify(user_message)
+        print('3')
+        print(user_message)
+        return jsonify("I have a guess of my condition with a low probability. Can you tell me to ask for more details but sill give a guess using " + str(list(predictions.keys())) +  ". Also ask for more symptoms related to: "+ user_message) 
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
