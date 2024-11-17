@@ -220,4 +220,4 @@ def diagnose():
         return jsonify("I have a guess of my condition with a low probability. Can you tell me to ask for more details but sill give a guess using " + str(list(predictions.keys())) +  ". Also ask for more symptoms related to: "+ user_message) 
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
