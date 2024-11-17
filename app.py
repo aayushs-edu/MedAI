@@ -1,19 +1,20 @@
 from flask import Flask, request, jsonify, render_template
 import joblib  # or whichever library you used to save your model
 import numpy as np
-from transformers import pipeline
+from transformers import pipeline, AutoModelForZeroShotImageClassification, AutoTokenizer, AutoImageProcessor
 import threading
 from rembg import remove
 from io import BytesIO
 from PIL import Image
 import os
 import base64
+import torch
 
 app = Flask(__name__)
 
 # NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
-tfidf = joblib.load('tfidf_vectorizer.pkl') 
+tfidf = joblib.load('tfidf_vectorizer.pkl')
 
 all_user_messages = []
 
@@ -37,7 +38,6 @@ candidate_labels = [
     "strep throat",
     "canker sore",
     "mucocele",
-    "ucler",
     "pink eye",
     "cataracts",
     "vitiligo"
@@ -49,8 +49,29 @@ def load_model():
     with model_lock:
         if cnn is None:
             print("Loading model...")
-            cnn = pipeline("zero-shot-image-classification", model="suinleelab/monet")
+
+            model = AutoModelForZeroShotImageClassification.from_pretrained(
+                "suinleelab/monet"
+            )
+            tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
+            image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
+
+            # Apply dynamic quantization
+            quantized_model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8
+            )
+
+            # Create the pipeline with the quantized model
+            cnn = pipeline(
+                "zero-shot-image-classification",
+                model=quantized_model,
+                tokenizer=tokenizer,
+                image_processor=image_processor
+            )
+
             print("Model loaded successfully!")
+
+
 def base64_to_bytesio(base64_string):
     if isinstance(base64_string, bytes):
         base64_string = base64_string.decode('utf-8')
@@ -112,13 +133,13 @@ def classify():
 
     print("Results: ", results)
 
-    if (results[0]["score"] > 0.70):
-        return jsonify('I seem to have a ', results[0]["label"], ', can you tell me how to fix it?') 
-    elif (results[0]["score"] > 0.50):
-        return jsonify('I might have a', results[0]["label"], ', but I am not sure, Can you help me?')
+    if (results[0]["score"] > 0.60):
+        return jsonify(f'I seem to have a {results[0]["label"]} can you tell me how to fix it?') 
+    elif (results[0]["score"] > 0.30):
+        return jsonify(f'I might have a {results[0]["label"]}, but it could also be a {results[1]["label"]} Can you tell me how to treat it?')
     else:
-        return jsonify('Tell me that the image looks fine and to provide a better image.')
-        
+        return jsonify('There seems to be nothing wrong with the image I gave you. Can you tell me how to stay healthy?')
+  
 
 
 @app.route('/cnn', methods=['GET'])
@@ -167,7 +188,7 @@ def diagnose():
     max_probability = np.max(probabilities)
 
     # If mean probability is less than 0.05, do not append to all_user_messages
-    if max_probability > 0.07:
+    if max_probability > 0.05:
         all_user_messages.append(user_message)
     else:
         return jsonify(user_message)
@@ -208,16 +229,12 @@ def diagnose():
     
     # Return the prediction as JSON
     max_probability = np.max(top3_probabilities)
-    if max_probability > 0.125:
-        print("1")
-        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses. Also mention that the last one has a very low probability")
+    if max_probability > 0.15:
+        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     elif len(all_user_messages) > 3:
-        print('2')
-        return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Tell me to provide more symptoms. Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
+        return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
-        print('3')
-        print(user_message)
-        return jsonify("I have a guess of my condition with a low probability. Can you tell me to ask for more details but sill give a guess using " + str(list(predictions.keys())) +  ". Also ask for more symptoms related to: "+ user_message) 
+        return jsonify(user_message)
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
