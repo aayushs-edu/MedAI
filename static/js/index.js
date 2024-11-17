@@ -291,6 +291,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .then(response => response.json())
               .then(async data => {
                   await getChatCompletion(JSON.stringify(data));
+                  console.log(data)
               })
               .catch(error => console.log('Error:', error));
             }
