@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/index.css') }}">
     <script>
     window.env = {
-        SECRET_KEY: "{{SECRET_KEY}}" // Placeholder for Heroku to replace
+        SECRET_KEY: "{{OPENAI_SECRET_KEY}}" // Placeholder for Heroku to replace
     };
     </script>
     <script src="{{ url_for('static', filename='js/index.js') }}" type="module"></script>
