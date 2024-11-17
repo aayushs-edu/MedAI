@@ -63,9 +63,10 @@ if (appointments == null) {
     appointments = [];
 }
 
-function loadChat(index) {
-    chatArea.innerHTML = appointments[index][1];
-}
+// Make loadChat globally accessible
+window.loadChat = function(index) {
+  chatArea.innerHTML = appointments[index][1];
+};
 
 function loadAppointments() {
     appointmentsContainer.textContent = "";
@@ -89,6 +90,7 @@ function saveState() {
     appointments[appointments.length - 1][1] = chatArea.innerHTML;
     localStorage.setItem("appointments", JSON.stringify(appointments));
 }
+
 
 function addBlankAIResponse() {
   chatArea.innerHTML += `

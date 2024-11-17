@@ -194,7 +194,7 @@ def diagnose():
     predictions = {}
     # Print the top 3 diagnoses with their probabilities
     for diagnosis, prob in zip(top3_diagnoses, top3_probabilities):
-        predictions.update({diagnosis: prob})
+        predictions.update({str(diagnosis): float(prob)})
 
     # Sort predictions by value in descending order
     sorted_predictions = dict(sorted(predictions.items(), key=lambda item: item[1], reverse=True))
