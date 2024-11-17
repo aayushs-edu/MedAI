@@ -8,7 +8,12 @@ const leftContainer = document.getElementById("leftContainer");
 const chatArea = document.getElementById("chatArea");
 const appointmentsContainer = document.getElementById("appointmentsContainer");
 
+const subtitle = document.getElementById("subtitle");
+subtitle.textContent = new Date(Date.now()).toDateString().split(' ').slice(1).join(' ');
+console.log(subtitle.textContent);
+
 var appointmentTitle;
+var currentChat = 0;
 
 const DOCTOR_PFP_URL = '/static/images/doctorPfp.png';
 
@@ -17,6 +22,7 @@ closeLeftbar.addEventListener('click', function() {
 });
 
 newAppointment.addEventListener('click', function() {
+  currentChat = appointments.length;
   chatArea.innerHTML = `
       <div class="aiResponseContainer">
           <div class="aiPfpContainer">
@@ -65,12 +71,21 @@ if (appointments == null) {
 
 // Make loadChat globally accessible
 window.loadChat = function(index) {
+  currentChat = index;
   chatArea.innerHTML = appointments[index][1];
+  subtitle.textContent = appointments[index][2];
 };
 
 function loadAppointments() {
     appointmentsContainer.textContent = "";
-    for (let i = appointments.length - 1; i >= 0; i--) {
+    var dates = [];
+    for (let i = 0; i < appointments.length; i++) {
+        if (!dates.includes(appointments[i][2])) {
+            dates.push(appointments[i][2]);
+            appointmentsContainer.innerHTML += `
+                <div class="date">${appointments[i][2]}</div>
+            `;
+        }
         appointmentsContainer.innerHTML += `
             <div class="appointment" onclick="loadChat(${i})">${appointments[i][0]}</div>
         `;
@@ -80,14 +95,15 @@ function loadAppointments() {
 loadAppointments();
 
 function intializeState() {
-    appointments.push([appointmentTitle, chatArea.innerHTML]);
+    appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).toDateString().split(' ').slice(1).join(' ')]);
     localStorage.setItem("appointments", JSON.stringify(appointments));
+    console.log(appointments);
 
     loadAppointments();
 }
 
-function saveState() {
-    appointments[appointments.length - 1][1] = chatArea.innerHTML;
+function saveState(idx) {
+    appointments[idx][1] = chatArea.innerHTML;
     localStorage.setItem("appointments", JSON.stringify(appointments));
 }
 
@@ -98,7 +114,9 @@ function addBlankAIResponse() {
           <div class="aiPfpContainer">
               <img class="aiPfp" src="${DOCTOR_PFP_URL}">
           </div>
-          <div class="aiTextContainer"></div>
+          <div class="aiTextContainer">
+              <img style="width:75px;height:75px" src="/static/images/loading.gif">
+          </div>
       </div>
   `
 }
@@ -203,6 +221,7 @@ async function getChatCompletion(text) {
       }
     }
   }
+  saveState(currentChat);
 }
 
 document.getElementById('chatInput').addEventListener('keydown', async function(event) {
@@ -245,8 +264,6 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               .catch(error => {
                   console.error('Error:', error);
               });
-
-              saveState()
             }
             else if (fileInput.files.length > 0) {
               addUserFileResponse("File Uploaded");
@@ -260,6 +277,8 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
 
               const removeImage = document.getElementById('removeImage');
               removeImage.click();
+
+              addBlankAIResponse();
               
               // Send a POST request to the Flask backend
               fetch('/cnn', {
@@ -271,13 +290,11 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               })
               .then(response => response.json())
               .then(async data => {
-                  addBlankAIResponse();
                   await getChatCompletion(JSON.stringify(data));
               })
               .catch(error => console.log('Error:', error));
-
-              saveState()
             }
+            saveState(currentChat)
         }
     }
 });
@@ -379,7 +396,6 @@ enterButton.addEventListener('click', async function() {
         console.error('Error:', error);
     });
 
-    saveState()
   }
   else if (fileInput.files.length > 0) {
     addUserFileResponse("File Uploaded");
@@ -415,8 +431,8 @@ enterButton.addEventListener('click', async function() {
     })
     .catch(error => console.log('Error:', error));
 
-    saveState()
   }
+  saveState(currentChat);
 });
 
 
