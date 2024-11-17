@@ -80,10 +80,6 @@ def base64_to_bytesio(base64_string):
     return image_bytesio
 @app.route('/get-secret-key', methods=['GET'])
 def get_secret_key():
-    # Check if the request is coming from your frontend (add authentication if necessary)
-    if 'localhost' not in request.headers.get('Origin', ''):  # Example for local dev
-        return jsonify({'error': 'Unauthorized'}), 403
-
     # Return the secret key
     return jsonify({'secretKey': os.environ.get('OPENAI_SECRET_KEY')})
 @app.route('/cnn', methods=['POST'])
