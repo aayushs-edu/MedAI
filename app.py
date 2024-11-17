@@ -46,9 +46,31 @@ candidate_labels = [
 # Load the model during startup
 def load_model():
     global cnn
-    # Wait until the worker has loaded the model
-    while cnn is None:
-        pass
+    with model_lock:
+        if cnn is None:
+            print("Loading model...")
+
+            model = AutoModelForZeroShotImageClassification.from_pretrained(
+                "suinleelab/monet"
+            )
+            tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
+            image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
+
+            # Apply dynamic quantization
+            quantized_model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8
+            )
+
+            # Create the pipeline with the quantized model
+            cnn = pipeline(
+                "zero-shot-image-classification",
+                model=quantized_model,
+                tokenizer=tokenizer,
+                image_processor=image_processor
+            )
+
+            print("Model loaded successfully!")
+
 def base64_to_bytesio(base64_string):
     if isinstance(base64_string, bytes):
         base64_string = base64_string.decode('utf-8')
