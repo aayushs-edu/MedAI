@@ -213,7 +213,7 @@ def diagnose():
     elif len(all_user_messages) > 3:
         return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
-        return jsonify("I have said: ", user_message, '. If what I have said is a definite symptom, tell me to expand on that symptom OR provide more symptoms. Do NOT diagnose me.')
+        return jsonify(user_message)
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
