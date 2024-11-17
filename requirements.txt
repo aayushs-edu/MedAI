@@ -6,3 +6,4 @@ rembg
 Pillow
 scikit-learn
 tensorflow
+gunicorn
