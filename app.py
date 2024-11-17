@@ -3,7 +3,10 @@ import joblib  # or whichever library you used to save your model
 import numpy as np
 from io import BytesIO
 from PIL import Image
-import requests
+import threading
+from rembg import remove
+from transformers import pipeline, AutoModelForZeroShotImageClassification, AutoTokenizer, AutoImageProcessor
+import torch
 
 app = Flask(__name__)
 
@@ -14,52 +17,116 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 all_user_messages = []
 
 # CNN
+cnn = None
+model_lock = threading.Lock()
+candidate_labels = [
+    "acne",
+    "eczema",
+    "psoriasis",
+    "dermatitis",
+    "rosacea",
+    "fungal infection",
+    "melanoma",
+    "skin cancer",
+    "rashes",
+    "cellulitis",
+    "keratosis",
+    "oily skin",
+    "dry skin",
+    "strep throat",
+    "canker sore",
+    "mucocele",
+    "pink eye",
+    "cataracts",
+    "vitiligo"
+]
 
-MODEL_SERVICE_URL = "http://model_service:5001/cnn"
+# Load the model during startup
+def load_model():
+    global cnn
+    with model_lock:
+        if cnn is None:
+            print("Loading model...")
 
-# # Load the model during startup
-# def load_model():
-#     global cnn
-#     with model_lock:
-#         if cnn is None:
-#             print("Loading model...")
+            model = AutoModelForZeroShotImageClassification.from_pretrained(
+                "suinleelab/monet"
+            )
+            tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
+            image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
 
-#             model = AutoModelForZeroShotImageClassification.from_pretrained(
-#                 "suinleelab/monet"
-#             )
-#             tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
-#             image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
+            # Apply dynamic quantization
+            quantized_model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8
+            )
 
-#             # Apply dynamic quantization
-#             quantized_model = torch.quantization.quantize_dynamic(
-#                 model, {torch.nn.Linear}, dtype=torch.qint8
-#             )
+            # Create the pipeline with the quantized model
+            cnn = pipeline(
+                "zero-shot-image-classification",
+                model=quantized_model,
+                tokenizer=tokenizer,
+                image_processor=image_processor
+            )
 
-#             # Create the pipeline with the quantized model
-#             cnn = pipeline(
-#                 "zero-shot-image-classification",
-#                 model=quantized_model,
-#                 tokenizer=tokenizer,
-#                 image_processor=image_processor
-#             )
-
-#             print("Model loaded successfully!")
-
+            print("Model loaded successfully!")
 
 @app.route('/cnn', methods=['POST'])
 def classify():
-    print("CNN classifying...")
+    global cnn
+    if cnn is None:
+        return jsonify({"error": "Model not loaded yet"}), 500
+    print("1")
+    image_bytes = request.data
+    image = Image.open(BytesIO(image_bytes))
+
+    intial_labels = [
+        "throat",
+        "skin",
+        "lips",
+        "eyes"
+    ]
+
+    with model_lock:
+        category = cnn(image, candidate_labels=intial_labels)
+
+    input_image = None
+    print("Category: ", category[0]["label"])
+    if category[0]["label"] == "throat" or category[0]["label"] == "lips" or category[0]["label"] == "eyes":
+        input_image = image
+    else:
+        input_image = remove(image)
     
-    results = requests.post(MODEL_SERVICE_URL, files={"image": request.data}).json()
+    # Use the preloaded classifier
+    with model_lock:  # Ensure thread-safe inference
+        results = cnn(input_image, candidate_labels=candidate_labels)
 
     print("Results: ", results)
 
-    return jsonify(results)
+    if (results[0]["score"] > 0.50):
+        return jsonify(f'I seem to have a {results[0]["label"]} can you tell me how to fix it?') 
+    elif (results[0]["score"] > 0.175):
+        return jsonify(f'I might have a {results[0]["label"]}, but it could also be a {results[1]["label"]} Can you tell me how to treat it?')
+    else:
+        return jsonify('There seems to be nothing wrong with the image I gave you. Can you tell me how to stay healthy?')
+
+
+
+# @app.route('/cnn', methods=['POST'])
+# def classify():
+#     print("CNN classifying...")
+    
+#     results = requests.post(MODEL_SERVICE_URL, files={"image": request.data}).json()
+
+#     print("Results: ", results)
+
+#     return jsonify(results)
 
 
 @app.route('/cnn', methods=['GET'])
 def get_cnn():
-    return requests.get(MODEL_SERVICE_URL).json()
+    if cnn is None:
+        return jsonify({"error": "Model not loaded yet"}), 500
+    else:
+        return jsonify({"message": "Model is loaded."})
     
 
 @app.route("/")
@@ -148,4 +215,5 @@ def diagnose():
         return jsonify(user_message)
     
 if __name__ == '__main__':
+    threading.Thread(target=load_model, daemon=True).start()
     app.run(host='0.0.0.0', port=5000)

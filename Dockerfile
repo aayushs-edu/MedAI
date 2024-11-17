@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 # Install required packages
-RUN pip install --no-cache-dir requests flask joblib numpy scikit-learn pillow transformers torch flask rembg
+RUN pip install --no-cache-dir flask joblib numpy scikit-learn pillow transformers torch flask rembg
 
 # Copy the app
 WORKDIR /app
