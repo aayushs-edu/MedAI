@@ -216,4 +216,4 @@ def diagnose():
         return jsonify(user_message)
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
