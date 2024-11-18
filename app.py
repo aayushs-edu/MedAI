@@ -6,7 +6,6 @@ import threading
 from rembg import remove
 from io import BytesIO
 from PIL import Image
-import os
 import base64
 import torch
 
@@ -26,13 +25,10 @@ candidate_labels = [
     "eczema",
     "psoriasis",
     "dermatitis",
-    "rosacea",
     "fungal infection",
     "melanoma",
     "skin cancer",
     "rashes",
-    "cellulitis",
-    "keratosis",
     "oily skin",
     "dry skin",
     "strep throat",
@@ -72,36 +68,6 @@ def load_model():
 
             print("Model loaded successfully!")
 
-
-def base64_to_bytesio(base64_string):
-    if isinstance(base64_string, bytes):
-        base64_string = base64_string.decode('utf-8')
-    # Remove the "data:image/jpeg;base64," or similar prefix (if it exists)
-
-    base64_string = base64_string.split(',')[1]
-    
-    # Log the length of the base64 string to ensure it's complete
-    print(f"Base64 string length: {len(base64_string)}")
-    print(f"Base64 preview: {base64_string[:100]}...")  # Print a small portion of the string for debugging
-
-    # Decode the base64 string to binary data
-    try:
-        image_data = base64.b64decode(base64_string)
-    except Exception as e:
-        print(f"Error decoding base64: {e}")
-        return None
-    # Use BytesIO to create an in-memory file-like object
-    try:
-        # Decode and verify image
-        image_bytesio = BytesIO(image_data)
-        image = Image.open(image_bytesio)
-        image.verify()
-        print("Image is valid!")
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
-    # Return the BytesIO object (the image data in memory)
-    return image_bytesio
 @app.route('/cnn', methods=['POST'])
 def classify():
     global cnn
@@ -142,7 +108,7 @@ def classify():
     elif (results[0]["score"] > 0.35):
         response["message"]=f'I might have a {results[0]["label"]}, but I am not sure. It could also be {results[1]["label"]} Can you help me?'
     else:
-        response["message"]='There seems to be nothing wrong with the image I gave you. Can you tell me how to stay healthy and/or provide a better image for you to diagnose?'
+        response["message"]='Can you tell me to provide a better image for you to diagnose and/or give me tips on how to stay healthy?'
 
     return jsonify(response)
         
