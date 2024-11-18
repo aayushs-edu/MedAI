@@ -1,19 +1,20 @@
 from flask import Flask, request, jsonify, render_template
 import joblib  # or whichever library you used to save your model
 import numpy as np
-from transformers import pipeline
+from transformers import pipeline, AutoModelForZeroShotImageClassification, AutoTokenizer, AutoImageProcessor
 import threading
 from rembg import remove
 from io import BytesIO
 from PIL import Image
 import os
 import base64
+import torch
 
 app = Flask(__name__)
 
 # NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
-tfidf = joblib.load('tfidf_vectorizer.pkl') 
+tfidf = joblib.load('tfidf_vectorizer.pkl')
 
 all_user_messages = []
 
@@ -49,8 +50,29 @@ def load_model():
     with model_lock:
         if cnn is None:
             print("Loading model...")
-            cnn = pipeline("zero-shot-image-classification", model="suinleelab/monet")
+
+            model = AutoModelForZeroShotImageClassification.from_pretrained(
+                "suinleelab/monet"
+            )
+            tokenizer = AutoTokenizer.from_pretrained("suinleelab/monet")
+            image_processor = AutoImageProcessor.from_pretrained("suinleelab/monet")
+
+            # Apply dynamic quantization
+            quantized_model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8
+            )
+
+            # Create the pipeline with the quantized model
+            cnn = pipeline(
+                "zero-shot-image-classification",
+                model=quantized_model,
+                tokenizer=tokenizer,
+                image_processor=image_processor
+            )
+
             print("Model loaded successfully!")
+
+
 def base64_to_bytesio(base64_string):
     if isinstance(base64_string, bytes):
         base64_string = base64_string.decode('utf-8')
@@ -174,7 +196,7 @@ def diagnose():
     response = {"message": "", "probs": top3_probabilities}
 
     # If mean probability is less than 0.05, do not append to all_user_messages
-    if max_probability > 0.07:
+    if max_probability > 0.05:
         all_user_messages.append(user_message)
     else:
         response["message"] = user_message
