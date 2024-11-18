@@ -133,8 +133,8 @@ function addUserResponse(text) {
                 <img class="userPfp" src="/static/images/user.png">
             </div>
         </div>
-
     `
+    addBlankAIResponse();
 }
 
 function addUserFileResponse(text) {
@@ -143,16 +143,18 @@ function addUserFileResponse(text) {
     const reader = new FileReader();
 
     reader.onload = function (event) {
-        chatArea.innerHTML += `
-            <div class="userResponseContainer">
-                <div class="userTextContainer">
-                    <img class="userImg" src="${event.target.result}" alt="User Image" />
-                </div>
-                <div class="userPfpContainer">
-                    <img class="userPfp" src="/static/images/user.png">
-                </div>
-            </div>
-        `;
+      chatArea.innerHTML += `
+          <div class="userResponseContainer">
+              <div class="userTextContainer">
+                  <div class="userText"></div>
+                  <img class="userImg" src="${event.target.result}" alt="User Image" />
+              </div>
+              <div class="userPfpContainer">
+                  <img class="userPfp" src="/static/images/user.png">
+              </div>
+          </div>
+      `;
+      addBlankAIResponse();
     };
 
     // Read the file as a data URL (base64)
@@ -239,8 +241,6 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
                   intializeState();
               }
 
-              addBlankAIResponse();
-
               // Run through naive bayes
               // Send a POST request to the Flask backend
               fetch('/nb', {
@@ -258,8 +258,9 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
                 return response.json(); // Parse JSON response
               })
               .then(async data => {
-                  console.log('Response from Flask:', data);
-                  await getChatCompletion(JSON.stringify(data));
+                  console.log('Message received: ', data["message"]);
+                  console.log('Probs: ', data["probs"])
+                  await getChatCompletion(JSON.stringify(data["message"]));
               })
               .catch(error => {
                   console.error('Error:', error);
@@ -278,7 +279,6 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               const removeImage = document.getElementById('removeImage');
               removeImage.click();
 
-              addBlankAIResponse();
               
               // Send a POST request to the Flask backend
               fetch('/cnn', {
@@ -290,7 +290,9 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               })
               .then(response => response.json())
               .then(async data => {
-                  await getChatCompletion(JSON.stringify(data));
+                  console.log('Message received: ', data["message"]);
+                  console.log('Probs: ', data["probs"])
+                  await getChatCompletion(JSON.stringify(data["message"]));
               })
               .catch(error => console.log('Error:', error));
             }
@@ -370,8 +372,6 @@ enterButton.addEventListener('click', async function() {
         intializeState();
     }
 
-    addBlankAIResponse();
-
     // Run through naive bayes
     // Send a POST request to the Flask backend
     fetch('/nb', {
@@ -389,8 +389,9 @@ enterButton.addEventListener('click', async function() {
       return response.json(); // Parse JSON response
     })
     .then(async data => {
-        console.log('Response from Flask:', data);
-        await getChatCompletion(JSON.stringify(data));
+        console.log('Message received: ', data["message"]);
+        console.log('Probs: ', data["probs"])
+        await getChatCompletion(JSON.stringify(data["message"]));
     })
     .catch(error => {
         console.error('Error:', error);
@@ -420,14 +421,9 @@ enterButton.addEventListener('click', async function() {
     })
     .then(response => response.json())
     .then(async data => {
-      addBlankAIResponse();
-      console.log(data[3])
-      
-      if (data[3] < 0.45) {
-        await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
-      } else {
-        await getChatCompletion(JSON.stringify(`I seem to have a ${data}, can you tell me how to fix it?`));
-      }
+      console.log('Message received: ', data["message"]);
+      console.log('Probs: ', data["probs"])
+      await getChatCompletion(JSON.stringify(data["message"]));
     })
     .catch(error => console.log('Error:', error));
 

@@ -37,10 +37,10 @@ candidate_labels = [
     "strep throat",
     "canker sore",
     "mucocele",
-    "ucler",
     "pink eye",
     "cataracts",
-    "vitiligo"
+    "vitiligo",
+    "warts"
 ]
 
 # Load the model during startup
@@ -84,7 +84,7 @@ def base64_to_bytesio(base64_string):
 def classify():
     global cnn
     if cnn is None:
-        return jsonify({"error": "Model not loaded yet"}), 500
+        return jsonify({"message": "The model was not loaded, so please ask me to try again.", "probs": []})
     print("1")
     image_bytes = request.data
     image = Image.open(BytesIO(image_bytes))
@@ -110,14 +110,19 @@ def classify():
     with model_lock:  # Ensure thread-safe inference
         results = cnn(input_image, candidate_labels=candidate_labels)
 
+    top3 = results[:3]
+    response = {"message": "", "probs": top3}
+
     print("Results: ", results)
 
-    if (results[0]["score"] > 0.70):
-        return jsonify('I seem to have a ', results[0]["label"], ', can you tell me how to fix it?') 
-    elif (results[0]["score"] > 0.50):
-        return jsonify('I might have a', results[0]["label"], ', but I am not sure, Can you help me?')
+    if (results[0]["score"] > 0.55):
+        response["message"]=f'I seem to have a {results[0]["label"]}, can you tell me how to fix it?'
+    elif (results[0]["score"] > 0.35):
+        response["message"]=f'I might have a {results[0]["label"]}, but I am not sure. It could also be {results[1]["label"]} Can you help me?'
     else:
-        return jsonify('Tell me that the image looks fine and to provide a better image.')
+        response["message"]='There seems to be nothing wrong with the image I gave you. Can you tell me how to stay healthy and/or provide a better image for you to diagnose?'
+
+    return jsonify(response)
         
 
 
@@ -166,11 +171,14 @@ def diagnose():
     # Calculate the mean probability
     max_probability = np.max(probabilities)
 
+    response = {"message": "", "probs": top3_probabilities}
+
     # If mean probability is less than 0.05, do not append to all_user_messages
     if max_probability > 0.07:
         all_user_messages.append(user_message)
     else:
-        return jsonify(user_message)
+        response["message"] = user_message
+        return jsonify(response)
 
 
     # All symptoms as string
@@ -208,16 +216,23 @@ def diagnose():
     
     # Return the prediction as JSON
     max_probability = np.max(top3_probabilities)
-    if max_probability > 0.125:
+
+    response = {"message": "", "probs": list(predictions.values())}
+
+    if max_probability > 0.15:
         print("1")
-        return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses. Also mention that the last one has a very low probability")
-    elif len(all_user_messages) > 3:
+        response["message"] = "Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses."
+    elif len(all_user_messages) > 4:
         print('2')
-        return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())[0]) + ". Tell me to provide more symptoms. Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
+        response["message"] = "Here is my unsure diagnosis: " + str(list(predictions.keys())) + ". Tell me that these are low probability because of less detail. Please ask me to provide more details related to: " + user_message
     else:
         print('3')
         print(user_message)
-        return jsonify("I have a guess of my condition with a low probability. Can you tell me to ask for more details but sill give a guess using " + str(list(predictions.keys())) +  ". Also ask for more symptoms related to: "+ user_message) 
+        response["message"] = "Here is my unsure diagnosis: " + str(list(predictions.keys())) + ". Tell me that these are low probability because of less detail. Please ask me to provide more details related to: " + user_message
+
+    print("Response: ", response)
+    return jsonify(response)
+
 if __name__ == '__main__':
     threading.Thread(target=load_model, daemon=True).start()
     app.run(debug=True)
