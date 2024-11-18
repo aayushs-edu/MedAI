@@ -5,12 +5,12 @@ async function fetchSecretKey() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Secret Key:", data.secretKey);
+
 
         // Use the secret key in your JS logic
         return data.secretKey;
     } catch (error) {
-        console.error("Error fetching secret key:", error);
+
     }
 }
 
@@ -18,9 +18,7 @@ async function fetchSecretKey() {
 let apiKey;
 (async () => {
   apiKey = await fetchSecretKey();
-  if (apiKey) {
-      console.log("Retrieved API Key:", apiKey);
-  }
+
 })();
 
 const closeLeftbar = document.getElementById("closeLeftbar");
