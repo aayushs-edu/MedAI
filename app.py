@@ -229,7 +229,7 @@ def diagnose():
     
     # Return the prediction as JSON
     max_probability = np.max(top3_probabilities)
-    if max_probability > 0.17:
+    if max_probability > 0.15:
         return jsonify("Here are my diagnoses in order of likelihood: " + str(list(predictions.keys())) + ". Please explain as if I had given you my symptoms. Say 'Thank you for providing your symptoms. Here are the possible conditions you may have:' and then go over the different diagnoses.")
     else:
         return jsonify("Here is my unsure diagnosis: " + str(list(predictions.keys())) + "Tell me that these are low probability because of less detail. Please ask me to provide more details related to: " + user_message)
