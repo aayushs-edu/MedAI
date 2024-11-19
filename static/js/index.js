@@ -12,8 +12,15 @@ const subtitle = document.getElementById("subtitle");
 subtitle.textContent = new Date(Date.now()).toDateString().split(' ').slice(1).join(' ');
 console.log(subtitle.textContent);
 
-var appointmentTitle;
+localStorage.setItem("appointments", null);
+var appointments = JSON.parse(localStorage.getItem("appointments"));
+if (appointments == null) {
+    appointments = [];
+}
+var appointmentTitle = "Checkup";
+appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).toDateString().split(' ').slice(1).join(' ')]);
 var currentChat = 0;
+localStorage.setItem("appointments", JSON.stringify(appointments));
 
 const DOCTOR_PFP_URL = '/static/images/doctorPfp.png';
 
@@ -23,6 +30,7 @@ closeLeftbar.addEventListener('click', function() {
 
 newAppointment.addEventListener('click', function() {
   currentChat = appointments.length;
+  appointmentTitle = "Checkup";
   chatArea.innerHTML = `
       <div class="aiResponseContainer">
           <div class="aiPfpContainer">
@@ -33,6 +41,8 @@ newAppointment.addEventListener('click', function() {
           </div>
       </div>
   `;
+  appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).toDateString().split(' ').slice(1).join(' ')]);
+  localStorage.setItem("appointments", JSON.stringify(appointments));
   fetch('/reset', {
       method: 'POST',
       headers: {
@@ -43,7 +53,6 @@ newAppointment.addEventListener('click', function() {
 });
 
 async function getTitle(text) {
-    var text = chatArea.children[1].children[0].textContent.trim();
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -63,17 +72,12 @@ async function getTitle(text) {
     return data.choices[0].message.content;
 }
 
-localStorage.setItem("appointments", null);
-var appointments = JSON.parse(localStorage.getItem("appointments"));
-if (appointments == null) {
-    appointments = [];
-}
-
 // Make loadChat globally accessible
 window.loadChat = function(index) {
   currentChat = index;
   chatArea.innerHTML = appointments[index][1];
   subtitle.textContent = appointments[index][2];
+  appointmentTitle = appointments[index][0];
 };
 
 function loadAppointments() {
@@ -94,8 +98,8 @@ function loadAppointments() {
 
 loadAppointments();
 
-function intializeState() {
-    appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).toDateString().split(' ').slice(1).join(' ')]);
+async function intializeState() {
+    appointments[currentChat][0] = appointmentTitle;
     localStorage.setItem("appointments", JSON.stringify(appointments));
     console.log(appointments);
 
@@ -103,6 +107,7 @@ function intializeState() {
 }
 
 function saveState(idx) {
+    appointments[idx][0] = appointmentTitle;
     appointments[idx][1] = chatArea.innerHTML;
     localStorage.setItem("appointments", JSON.stringify(appointments));
 }
@@ -236,8 +241,8 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               console.log(userText);
               addUserResponse(userText);
 
-              if (chatArea.children.length == 2) {
-                  appointmentTitle = await getTitle();
+              if (appointmentTitle == "Checkup") {
+                  appointmentTitle = await getTitle(userText);
                   intializeState();
               }
 
@@ -269,11 +274,6 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
             else if (fileInput.files.length > 0) {
               addUserFileResponse("File Uploaded");
 
-              if (chatArea.children.length == 2) {
-                appointmentTitle = await getTitle();
-                intializeState();
-              }
-
               var file = fileInput.files[0];
 
               const removeImage = document.getElementById('removeImage');
@@ -290,6 +290,7 @@ document.getElementById('chatInput').addEventListener('keydown', async function(
               })
               .then(response => response.json())
               .then(async data => {
+
                   console.log('Message received: ', data["message"]);
                   console.log('Probs: ', data["probs"])
                   await getChatCompletion(JSON.stringify(data["message"]));
@@ -367,8 +368,8 @@ enterButton.addEventListener('click', async function() {
     console.log(userText);
     addUserResponse(userText);
 
-    if (chatArea.children.length == 2) {
-        appointmentTitle = await getTitle();
+    if (appointmentTitle == "Checkup") {
+        appointmentTitle = await getTitle(userText);
         intializeState();
     }
 
@@ -400,12 +401,6 @@ enterButton.addEventListener('click', async function() {
   }
   else if (fileInput.files.length > 0) {
     addUserFileResponse("File Uploaded");
-
-    if (chatArea.children.length == 2) {
-      appointmentTitle = await getTitle();
-      intializeState();
-    }
-
     var file = fileInput.files[0];
 
     const removeImage = document.getElementById('removeImage');
