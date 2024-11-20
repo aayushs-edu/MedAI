@@ -118,7 +118,7 @@ def classify():
     if (results[0]["score"] > 0.55):
         response["message"]=f'I seem to have a {results[0]["label"]}, can you tell me how to fix it?'
     elif (results[0]["score"] > 0.20):
-        response["message"]=f'I might have a {results[0]["label"]}, but I am not sure. It could also be {results[1]["label"]} Remind me that its a guess and I should see a specialist. Can you help me?'
+        response["message"]=f'I might have a {results[0]["label"]}, but I am not sure. It could also be {results[1]["label"]} Tell me that its a guess and I should see a specialist. Can you help me?'
     else:
         response["message"]='Can you tell me to provide a better image for you to diagnose and/or give me tips on how to stay healthy?'
 
