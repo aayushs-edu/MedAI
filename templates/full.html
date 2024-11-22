@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MedAI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @font-face {
+            font-family: "Yellow Ginger";
+            src: url('../static/fonts/Yellow Ginger.ttf') format("truetype");
+        }
+
+        #bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #bg canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-weight: 400;
+        background:  #76d17e;
+        color: rgb(29, 29, 29);
+        overflow: hidden;
+        }
+
+        #title {
+        font-family: 'Yellow Ginger', Verdana, Tahoma;
+        font-size: 4em;
+        text-align: center;
+        margin-top: 50px;
+        color: rgb(218, 217, 217);
+        }
+
+        #subtitle {
+        font-family: "Lobster", sans-serif;
+        font-size: 2em;
+        text-align: center;
+        margin-top: 10px;
+        color: rgb(192, 180, 180);
+        }
+
+        .squished {
+        transform: scaleX(0);
+        }
+
+        #appointmentsContainer {
+        height: 100%;
+        margin-top: 82px;
+        overflow-y: scroll;
+        overflow-y: hidden;
+        padding-bottom: 400px;
+        }
+
+        #leftContainer {
+        position: fixed;
+        top: 0;
+        background: #171717;
+        height: 100%;
+        width: 250px;
+        transition: transform 0.5s ease;
+        transform-origin: left;
+        z-index: 1;
+        }
+
+        .leftbarButton {
+        cursor: pointer;
+        height: 27px;
+        width: 27px;
+        border: none;
+        z-index: 1;
+        }
+
+        #closeLeftbar {
+        position: fixed;
+        top: 7px;
+        left: 8px;
+        background: transparent;
+        background-image: url('/static/images/sidebar.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        }
+
+        #newAppointment {
+        position: fixed;
+        top: 7px;
+        left: 47px;
+        background: transparent;
+        background-image: url('/static/images/newChat.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        }
+
+        #chatContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin: auto;
+        margin-top: 20px;
+        width: 100%;
+        height: calc(100vh - 132px);
+        max-width: 775px;
+        }
+
+        #chatArea {
+        flex-grow: 1;
+        margin-bottom: 40px;
+        max-height: calc(85vh - 220px);
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        scroll-snap-type: y proximity;
+        }
+
+        #chatArea > div > div:last-child {
+        scroll-snap-align: end;
+        }
+
+        #chatArea::-webkit-scrollbar {
+        width: 12px;
+        }
+
+        #chatArea::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        }
+
+        #chatArea::-webkit-scrollbar-thumb {
+        background: #888;
+        }
+
+        #chatArea::-webkit-scrollbar-thumb:hover {
+        background: #555;
+        }
+
+        #chatArea::-webkit-scrollbar-button {
+        display: none;
+        }
+
+        #chatInput {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        flex: 1;
+        margin-right: 15px;
+        border: none;
+        outline: none;
+        padding: 10px;
+        background: #2F2F2F;
+        color: white;
+        font-size: 16px;
+        border-radius: 20px;
+        resize: none;
+        min-height: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+        line-height: 1.5;
+        box-sizing: border-box;
+        }
+
+        #chatInputContainer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        width: 70%;
+        max-width: 800px;
+        min-height: 50px;
+        max-height: 250px;
+        padding: 15px;
+        background: #2F2F2F;
+        border-top: 1px solid #171717;
+        border-radius: 30px;
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        box-sizing: border-box;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: height 0.2s ease;
+        bottom: 15px;
+        }
+
+        #leftbarTitle {
+        font-family: "Lobster", sans-serif;
+        position: fixed;
+        margin-left: 7px;
+        margin-top: 50px;
+        font-size: 28px;
+        color: white;
+        }
+
+        .appointment {
+        width: 200px;
+        height: 43px;
+        background: #ffffff;
+        margin-left: 7px;
+        border-radius: 500px;
+        line-height: 40px;
+        padding-left: 15px;
+        padding-right: 15px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        margin-bottom: 13px;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+        }
+
+        .date {
+        font-family: "Lobster", sans-serif;
+        font-size: 20px;
+        color: #5e5e5e;
+        margin-left: 15px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        }
+
+        .appointment:hover {
+        transform: scale(1.03);
+        }
+
+        .aiResponseContainer {
+        margin-top: 15px;
+        display: flex;
+        width: 100%;
+        }
+
+        .aiPfp {
+        width: 50px;
+        border-radius: 100%;
+        margin-left: 5px;
+        margin-top: 5px;
+        margin-right: 5px;
+        }
+
+
+        .aiTextContainer {
+        padding-right: 15px;
+        padding-left: 15px;
+        word-wrap: break-word;
+        width: fit-content;
+        line-height: 23px;
+        margin-right: 70px;
+        margin-left: 5px;
+        background: #2f2f2f;
+        color: white;
+        border-radius: 30px;
+        }
+
+        .userPfpContainer {
+
+        }
+
+        .userPfp {
+        height: 40px;
+        width: 40px;
+        border-radius: 100%;
+        margin-left: 5px;
+        margin-top: 4px;
+        margin-right: 5px;
+        margin-bottom: 4px;
+        }
+
+        .userImg {
+        max-height: 100px;
+        max-width: 100px;
+        width: auto;
+        height: auto;
+        object-fit: contain; /* This preserves aspect ratio */
+        }
+
+
+        .userResponseContainer {
+        margin-top: 15px;
+        display: flex;
+        width: 100%;
+        justify-content: right;
+        }
+
+        .userTextContainer {
+        padding-top: 16px;
+        padding-right: 15px;
+        padding-left: 15px;
+        padding-bottom: 16px;
+        word-wrap: normal;
+        width: fit-content;
+        line-height: 23px;
+        float: right;
+        margin-left: 70px;
+        margin-right: 5px;
+        background: #5e5e5e;
+        color: white;
+        border-radius: 30px;
+        }
+
+        #fileUpload {
+        height: 35px;
+        width: 35px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        background-image: url('/static/images/fileUpload.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-color: transparent;
+        margin-right: 15px; /* Space between file upload and send button */
+        margin-bottom: 5px;
+        }
+
+
+        #imagePreviewContainer {
+        display: flex;
+        align-items: center; /* Center images vertically */
+        margin-right: 15px; /* Spacing from the file upload button */
+        gap: 10px; /* Space between multiple images */
+        }
+
+        .imagePreview {
+        display: inline-flex;
+        align-items: center;
+        position: relative; /* Add this to help position the button */
+        }
+
+
+        .imagePreview img {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-right: 10px; /* Reduce from 55px to 10px */
+        }
+
+        .imagePreview button {
+        background: transparent;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        width: 25px;
+        height: 25px;
+        font-size: 16px;
+        position: absolute; /* Position the button relative to preview container */
+        right: 15px; /* Adjust this value to control spacing from right edge */
+        top: 20%;
+        transform: translateY(-50%);
+        }
+
+
+        #enterResponse {
+        height: 35px;
+        width: 35px;
+        border: none;
+        margin-bottom: 5px;
+        border-radius: 50%;
+        cursor: pointer;
+        background-image: url('/static/images/upArrow.png');
+        background-size: 75%;
+        background-position: center;
+        background-repeat: no-repeat;
+        }
+
+        @media (max-width: 775px) {
+        #enterResponse {
+            right: 12px;
+        }
+        }
+    </style>
+    <script type="module">
+        import { OPENAI_API_KEY } from './env.js';
+
+        const apiKey = OPENAI_API_KEY;
+
+        const closeLeftbar = document.getElementById("closeLeftbar");
+        const newAppointment = document.getElementById("newAppointment");
+        const leftContainer = document.getElementById("leftContainer");
+        const chatArea = document.getElementById("chatArea");
+        const appointmentsContainer = document.getElementById("appointmentsContainer");
+
+        const subtitle = document.getElementById("subtitle");
+        subtitle.textContent = new Date(Date.now()).toDateString().split(' ').slice(1).join(' ');
+        console.log(subtitle.textContent);
+
+        var appointmentTitle;
+        var currentChat = 0;
+
+        const DOCTOR_PFP_URL = '/static/images/doctorPfp.png';
+
+        closeLeftbar.addEventListener('click', function() {
+            leftContainer.classList.toggle("squished");
+        });
+
+        newAppointment.addEventListener('click', function() {
+        currentChat = appointments.length;
+        chatArea.innerHTML = `
+            <div class="aiResponseContainer">
+                <div class="aiPfpContainer">
+                    <img class="aiPfp" src="${DOCTOR_PFP_URL}">
+                </div>
+                <div class="aiTextContainer">
+                    <p>Hello! How can I assist you today regarding health or medical information?</p>
+                </div>
+            </div>
+        `;
+        fetch('/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify("")
+        })
+        });
+
+        async function getTitle(text) {
+            const lastElement = chatArea.children[1].children[0];
+            const image = lastElement.querySelector('img');
+            var text = image ? image.alt : lastElement.textContent.trim();
+
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: "You are a medical doctor. Come up with a brief 3 - 5 word title for the appointment given the user's text." },
+                    { role: "user", content: text }
+                ]
+                })
+            });
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        localStorage.setItem("appointments", null);
+        var appointments = JSON.parse(localStorage.getItem("appointments"));
+        if (appointments == null) {
+            appointments = [];
+        }
+
+        // Make loadChat globally accessible
+        window.loadChat = function(index) {
+        currentChat = index;
+        chatArea.innerHTML = appointments[index][1];
+        subtitle.textContent = appointments[index][2];
+        };
+
+        function loadAppointments() {
+            appointmentsContainer.textContent = "";
+            var dates = [];
+            for (let i = 0; i < appointments.length; i++) {
+                if (!dates.includes(appointments[i][2])) {
+                    dates.push(appointments[i][2]);
+                    appointmentsContainer.innerHTML += `
+                        <div class="date">${appointments[i][2]}</div>
+                    `;
+                }
+                appointmentsContainer.innerHTML += `
+                    <div class="appointment" onclick="loadChat(${i})">${appointments[i][0]}</div>
+                `;
+            }
+        }
+
+        loadAppointments();
+
+        function intializeState() {
+            appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).toDateString().split(' ').slice(1).join(' ')]);
+            localStorage.setItem("appointments", JSON.stringify(appointments));
+            console.log(appointments);
+
+            loadAppointments();
+        }
+
+        function saveState(idx) {
+            appointments[idx][1] = chatArea.innerHTML;
+            localStorage.setItem("appointments", JSON.stringify(appointments));
+        }
+
+
+        function addBlankAIResponse() {
+        chatArea.innerHTML += `
+            <div class="aiResponseContainer">
+                <div class="aiPfpContainer">
+                    <img class="aiPfp" src="${DOCTOR_PFP_URL}">
+                </div>
+                <div class="aiTextContainer">
+                    <img style="width:75px;height:75px" src="/static/images/loading.gif">
+                </div>
+            </div>
+        `
+        }
+
+        function addUserResponse(text) {
+            chatArea.innerHTML += `
+                <div class="userResponseContainer">
+                    <div class="userTextContainer">
+                        <div class="userText">
+                            ${text}
+                        </div>
+                    </div>
+                    <div class="userPfpContainer">
+                        <img class="userPfp" src="/static/images/user.png">
+                    </div>
+                </div>
+
+            `
+        }
+
+        function addUserFileResponse(text) {
+        if (fileInput.files[0]) {
+            // Create a FileReader to load and display the image
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                chatArea.innerHTML += `
+                    <div class="userResponseContainer">
+                        <div class="userTextContainer">
+                            <img class="userImg" src="${event.target.result}" alt="${text}" />
+                        </div>
+                        <div class="userPfpContainer">
+                            <img class="userPfp" src="/static/images/user.png">
+                        </div>
+                    </div>
+                `;
+            };
+
+            // Read the file as a data URL (base64)
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+        }
+
+
+        async function getChatCompletion(text) {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content. If you get something not medical related, please ask for more details or a clearer image(as the user may give an image)." },
+                { role: "user", content: text }
+            ],
+            stream: true
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error: ${response.status} - ${errorText}`);
+            throw new Error("Network response was not ok.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        let currentHTML = "";  // Accumulate response text
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (let line of lines) {
+            if (line.startsWith("data: ")) {
+                const jsonString = line.slice("data: ".length).trim();
+
+                if (jsonString === "[DONE]") break;
+
+                try {
+                const json = JSON.parse(jsonString);
+                if (json.choices && json.choices[0].delta && json.choices[0].delta.content) {
+                    const content = json.choices[0].delta.content;
+                    currentHTML += content;
+                    const currResponseCont = document.getElementById("chatArea");
+                    const currResponse = currResponseCont.getElementsByClassName("aiResponseContainer")[currResponseCont.getElementsByClassName("aiResponseContainer").length - 1];
+                    const currResponseText = currResponse.children[currResponse.children.length - 1];
+                    currResponseText.innerHTML = currentHTML;
+
+                    // scroll to bottom if isScrolledToBottom is true
+                    chatArea.scrollTo(0, chatArea.scrollHeight);
+                }
+                } catch (error) {
+                console.error("Error parsing JSON:", error, "Chunk:", jsonString);
+                }
+            }
+            }
+        }
+        saveState(currentChat);
+        }
+
+        document.getElementById('chatInput').addEventListener('keydown', async function(event) {
+            if (event.key === 'Enter') {
+                if (!event.shiftKey) {
+                    event.preventDefault();
+                    const userText = chatInput.value;
+                    if (userText != "") {
+                    chatInput.value = "";
+                    console.log(userText);
+                    addUserResponse(userText);
+
+                    if (chatArea.children.length == 2) {
+                        appointmentTitle = await getTitle();
+                        intializeState();
+                    }
+
+                    addBlankAIResponse();
+
+                    // Run through naive bayes
+                    // Send a POST request to the Flask backend
+                    fetch('/nb', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userText)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        console.log(response);
+                        return response.json(); // Parse JSON response
+                    })
+                    .then(async data => {
+                        console.log('Response from Flask:', data);
+                        await getChatCompletion(JSON.stringify(data));
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                    }
+                    else if (fileInput.files.length > 0) {
+                    addUserFileResponse("File Uploaded");
+
+                    if (chatArea.children.length == 2) {
+                        appointmentTitle = await getTitle();
+                        intializeState();
+                    }
+
+                    var file = fileInput.files[0];
+
+                    const removeImage = document.getElementById('removeImage');
+                    removeImage.click();
+
+                    addBlankAIResponse();
+                    
+                    // Send a POST request to the Flask backend
+                    fetch('/cnn', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/octet-stream'
+                        },
+                        body: file
+                    })
+                    .then(response => response.json())
+                    .then(async data => {
+                        await getChatCompletion(JSON.stringify(data));
+                    })
+                    .catch(error => console.log('Error:', error));
+                    }
+                    saveState(currentChat)
+                }
+            }
+        });
+
+        const uploadButton = document.getElementById("fileUpload");
+        const fileInput = document.getElementById("fileInput");
+        uploadButton.addEventListener('click', () => {
+        fileInput.click();
+        });
+
+        const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('chatInput');
+        
+        function adjustHeight() {
+            // Reset height to auto first
+            textarea.style.height = 'auto';
+            // Set new height based on scrollHeight
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        }
+        
+        // Add input event listener
+        textarea.addEventListener('input', adjustHeight);
+        
+        // Initial height adjustment
+        adjustHeight();
+        });
+
+        fileInput.addEventListener('change', () => {
+            // Check if a file is selected
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                // Display the file name
+                if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    // Display the image preview
+                    imagePreviewContainer.innerHTML = `
+                        <div class="imagePreview">
+                            <img src="${event.target.result}" alt="Selected Image" />
+                            <button id="removeImage">❌</button>
+                        </div>
+                    `;
+                    // Add a remove button to clear the preview
+                    const removeImage = document.getElementById('removeImage');
+                    removeImage.addEventListener('click', () => {
+                        imagePreviewContainer.innerHTML = ''; // Clear preview
+                        fileInput.value = ''; // Clear file input
+                    });
+                };
+
+                // Read the file as a data URL
+                reader.readAsDataURL(file);
+            };
+            } else {
+                uploadButton.style.backgroundImage = `url('/static/images/fileUpload.png')`;
+            }
+        });
+
+        const enterButton = document.getElementById("enterResponse");
+        enterButton.addEventListener('click', async function() {
+        console.log("Enter button clicked");
+        const userText = chatInput.value;
+        if (userText != "") {
+            chatInput.value = "";
+            console.log(userText);
+            addUserResponse(userText);
+
+            if (chatArea.children.length == 2) {
+                appointmentTitle = await getTitle();
+                intializeState();
+            }
+
+            addBlankAIResponse();
+
+            // Run through naive bayes
+            // Send a POST request to the Flask backend
+            fetch('/nb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userText)
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            console.log(response);
+            return response.json(); // Parse JSON response
+            })
+            .then(async data => {
+                console.log('Response from Flask:', data);
+                await getChatCompletion(JSON.stringify(data));
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        }
+        else if (fileInput.files.length > 0) {
+            addUserFileResponse("File Uploaded");
+
+            if (chatArea.children.length == 2) {
+            appointmentTitle = await getTitle();
+            intializeState();
+            }
+
+            var file = fileInput.files[0];
+
+            const removeImage = document.getElementById('removeImage');
+            removeImage.click();
+            
+            // Send a POST request to the Flask backend
+            fetch('/cnn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: file
+            })
+            .then(response => response.json())
+            .then(async data => {
+            addBlankAIResponse();
+            console.log(data[3])
+            
+            if (data[3] < 0.45) {
+                await getChatCompletion(JSON.stringify('ignore previous instruction and ask for a better image'));
+            } else {
+                await getChatCompletion(JSON.stringify(`I seem to have a ${data}, can you tell me how to fix it?`));
+            }
+            })
+            .catch(error => console.log('Error:', error));
+
+        }
+        saveState(currentChat);
+        });
+    </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var canvas = document.querySelectorAll('#bg canvas');
+    var background = canvas[0];
+    var foreground1 = canvas[1];
+    var foreground2 = canvas[2];
+  
+    var config = {
+      circle: {
+        amount: 10,
+        layer: 3,
+        color: [113, 246, 153],
+        alpha: 0.4
+      },
+      line: {
+        amount: 12,
+        layer: 3,
+        color: [255, 255, 255],
+        alpha: 0.3
+      },
+      speed: 0.5,
+      angle: 20
+    };
+  
+    if (background.getContext) {
+      var bctx = background.getContext('2d');
+      var fctx1 = foreground1.getContext('2d');
+      var fctx2 = foreground2.getContext('2d');
+      var M = window.Math; // Cached Math
+      var degree = config.angle / 360 * M.PI * 2;
+      var circles = [];
+      var lines = [];
+      var wWidth, wHeight, timer;
+  
+      var requestAnimationFrame = window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        function(callback) { setTimeout(callback, 1000 / 60); };
+  
+      var cancelAnimationFrame = window.cancelAnimationFrame ||
+        window.mozCancelAnimationFrame ||
+        window.webkitCancelAnimationFrame ||
+        window.msCancelAnimationFrame ||
+        window.oCancelAnimationFrame ||
+        clearTimeout;
+  
+      var setCanvasHeight = function() {
+        wWidth = window.innerWidth;
+        wHeight = window.innerHeight;
+        canvas.forEach(function(c) {
+          c.width = wWidth;
+          c.height = wHeight;
+        });
+      };
+  
+      var drawCircle = function(x, y, radius, color, alpha) {
+        var gradient = fctx1.createRadialGradient(x, y, radius, x, y, 0);
+        gradient.addColorStop(0, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + alpha + ')');
+        gradient.addColorStop(1, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + (alpha - 0.1) + ')');
+  
+        fctx1.beginPath();
+        fctx1.arc(x, y, radius, 0, M.PI * 2, true);
+        fctx1.fillStyle = gradient;
+        fctx1.fill();
+      };
+  
+      var drawLine = function(x, y, width, color, alpha) {
+        var endX = x + M.sin(degree) * width;
+        var endY = y - M.cos(degree) * width;
+        var gradient = fctx2.createLinearGradient(x, y, endX, endY);
+        gradient.addColorStop(0, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + alpha + ')');
+        gradient.addColorStop(1, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',' + (alpha - 0.1) + ')');
+  
+        fctx2.beginPath();
+        fctx2.moveTo(x, y);
+        fctx2.lineTo(endX, endY);
+        fctx2.lineWidth = 3;
+        fctx2.lineCap = 'round';
+        fctx2.strokeStyle = gradient;
+        fctx2.stroke();
+      };
+  
+      var drawBack = function() {
+        bctx.clearRect(0, 0, wWidth, wHeight);
+        var gradient = [];
+  
+        gradient[0] = bctx.createRadialGradient(wWidth * 0.3, wHeight * 0.1, 0, wWidth * 0.3, wHeight * 0.1, wWidth * 0.9);
+        gradient[0].addColorStop(0, 'rgb(29, 117, 56)');
+        gradient[0].addColorStop(1, 'transparent');
+  
+        bctx.translate(wWidth, 0);
+        bctx.scale(-1, 1);
+        bctx.beginPath();
+        bctx.fillStyle = gradient[0];
+        bctx.fillRect(0, 0, wWidth, wHeight);
+  
+        gradient[1] = bctx.createRadialGradient(wWidth * 0.1, wHeight * 0.1, 0, wWidth * 0.3, wHeight * 0.1, wWidth);
+        gradient[1].addColorStop(0, 'rgb(29, 117, 56)');
+        gradient[1].addColorStop(0.8, 'transparent');
+  
+        bctx.translate(wWidth, 0);
+        bctx.scale(-1, 1);
+        bctx.beginPath();
+        bctx.fillStyle = gradient[1];
+        bctx.fillRect(0, 0, wWidth, wHeight);
+  
+        gradient[2] = bctx.createRadialGradient(wWidth * 0.1, wHeight * 0.5, 0, wWidth * 0.1, wHeight * 0.5, wWidth * 0.5);
+        gradient[2].addColorStop(0, 'rgb(29, 117, 56)');
+        gradient[2].addColorStop(1, 'transparent');
+  
+        bctx.beginPath();
+        bctx.fillStyle = gradient[2];
+        bctx.fillRect(0, 0, wWidth, wHeight);
+      };
+  
+      var animate = function() {
+        var sin = M.sin(degree);
+        var cos = M.cos(degree);
+  
+        if (config.circle.amount > 0 && config.circle.layer > 0) {
+          fctx1.clearRect(0, 0, wWidth, wHeight);
+          for (var i = 0, len = circles.length; i < len; i++) {
+            var item = circles[i];
+            var x = item.x;
+            var y = item.y;
+            var radius = item.radius;
+            var speed = item.speed;
+  
+            if (x > wWidth + radius) {
+              x = -radius;
+            } else if (x < -radius) {
+              x = wWidth + radius;
+            } else {
+              x += sin * speed;
+            }
+  
+            if (y > wHeight + radius) {
+              y = -radius;
+            } else if (y < -radius) {
+              y = wHeight + radius;
+            } else {
+              y -= cos * speed;
+            }
+  
+            item.x = x;
+            item.y = y;
+            drawCircle(x, y, radius, item.color, item.alpha);
+          }
+        }
+  
+        if (config.line.amount > 0 && config.line.layer > 0) {
+          fctx2.clearRect(0, 0, wWidth, wHeight);
+          for (var j = 0, len = lines.length; j < len; j++) {
+            var item = lines[j];
+            var x = item.x;
+            var y = item.y;
+            var width = item.width;
+            var speed = item.speed;
+  
+            if (x > wWidth + width * sin) {
+              x = -width * sin;
+            } else if (x < -width * sin) {
+              x = wWidth + width * sin;
+            } else {
+              x += sin * speed;
+            }
+  
+            if (y > wHeight + width * cos) {
+              y = -width * cos;
+            } else if (y < -width * cos) {
+              y = wHeight + width * cos;
+            } else {
+              y -= cos * speed;
+            }
+  
+            item.x = x;
+            item.y = y;
+            drawLine(x, y, width, item.color, item.alpha);
+          }
+        }
+  
+        timer = requestAnimationFrame(animate);
+      };
+  
+      var createItem = function() {
+        circles = [];
+        lines = [];
+  
+        if (config.circle.amount > 0 && config.circle.layer > 0) {
+          for (var i = 0; i < config.circle.amount / config.circle.layer; i++) {
+            for (var j = 0; j < config.circle.layer; j++) {
+              circles.push({
+                x: M.random() * wWidth,
+                y: M.random() * wHeight,
+                radius: M.random() * (20 + j * 5) + (20 + j * 5),
+                color: config.circle.color,
+                alpha: M.random() * 0.2 + (config.circle.alpha - j * 0.1),
+                speed: config.speed * (1 + j * 0.5)
+              });
+            }
+          }
+        }
+  
+        if (config.line.amount > 0 && config.line.layer > 0) {
+          for (var m = 0; m < config.line.amount / config.line.layer; m++) {
+            for (var n = 0; n < config.line.layer; n++) {
+              lines.push({
+                x: M.random() * wWidth,
+                y: M.random() * wHeight,
+                width: M.random() * (20 + n * 5) + (20 + n * 5),
+                color: config.line.color,
+                alpha: M.random() * 0.2 + (config.line.alpha - n * 0.1),
+                speed: config.speed * (1 + n * 0.5)
+              });
+            }
+          }
+        }
+  
+        cancelAnimationFrame(timer);
+        timer = requestAnimationFrame(animate);
+        drawBack();
+      };
+  
+      setCanvasHeight();
+      createItem();
+      window.addEventListener('resize', function() {
+        setCanvasHeight();
+        createItem();
+      });
+    }
+  });
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="bg">
+        <canvas></canvas>
+        <canvas></canvas>
+        <canvas></canvas>
+    </div>
+    <div id="leftContainer" class="squished">
+        <p id="leftbarTitle">Your Appointments</p>
+        <div id=appointmentsContainer>
+
+            
+        </div>
+    </div>
+    <div id="buttons">
+        <button id="closeLeftbar" class="leftbarButton"></button>
+        <button id="newAppointment" class="leftbarButton"></button>
+    </div>
+
+    <div id="title">Med AI</div>
+    <div id="subtitle">Date</div>
+    <div id="chatContainer">
+        <div id="chatArea">
+            <div class="aiResponseContainer">
+                <div class="aiPfpContainer">
+                    <img class=aiPfp src="{{ url_for('static', filename='images/doctorPfp.png') }}">
+                </div>
+                <div class="aiTextContainer">
+                    <p>Hello! How can I assist you today regarding health or medical information?</p>
+                </div>
+            </div>
+        </div>
+        <div id="chatInputContainer">
+            <textarea id="chatInput" rows="1" placeholder="Ask doctor..."></textarea>
+            <div id="imagePreviewContainer"></div>
+            <input type="file" id="fileInput" style="display: none;" accept="image/*">
+            <button id="fileUpload"></button>
+            <button id="enterResponse"></button>
+        </div>
+    </div>
+</body>
+</html>
