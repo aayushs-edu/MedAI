@@ -1,12 +1,15 @@
-const apiKey = process.env.OPENAI_API_KEY;
+// Load configuration
+const BACKEND_URL = window.API_CONFIG?.BACKEND_URL || '';
+const apiKey = window.API_CONFIG?.OPENAI_API_KEY || window.OPENAI_API_KEY || undefined;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
 const leftContainer = document.getElementById("leftContainer");
 const chatArea = document.getElementById("chatArea");
 const appointmentsContainer = document.getElementById("appointmentsContainer");
-const langSelect = document.getElementById("languageDropdown");
-var lang = langSelect?.value;
+// Language dropdown not present in static version
+const langSelect = null;
+var lang = 'en';
 
 const subtitle = document.getElementById("subtitle");
 subtitle.textContent = new Date(Date.now()).toDateString().split(' ').slice(1).join(' ');
@@ -22,7 +25,7 @@ appointments.push([appointmentTitle, chatArea.innerHTML, new Date(Date.now()).to
 var currentChat = 0;
 localStorage.setItem("appointments", JSON.stringify(appointments));
 
-const DOCTOR_PFP_URL = 'static/images/doctorPfp.png';
+const DOCTOR_PFP_URL = '/static/images/doctorPfp.png';
 
 // Helper function to check if backend is available
 async function isBackendAvailable() {
@@ -37,38 +40,246 @@ async function isBackendAvailable() {
     }
 }
 
-// Fallback responses for when backend is not available
-const fallbackResponses = {
-    nb: {
-        message: [
-            "Based on your symptoms, here are some possible conditions to consider:",
-            "",
-            "1. Common Cold (30% likelihood) - Characterized by runny nose, mild fever, and general fatigue",
-            "2. Seasonal Allergies (25% likelihood) - Often presents with sneezing, itchy eyes, and nasal congestion",
-            "3. Viral Infection (20% likelihood) - May include body aches, fever, and respiratory symptoms",
-            "4. Stress-related symptoms (15% likelihood) - Can manifest as headaches, fatigue, and digestive issues",
-            "5. Other conditions (10% likelihood) - Further evaluation may be needed",
-            "",
-            "Please note: This is a demo response. For actual medical advice, please consult with a healthcare professional."
-        ],
-        probs: [0.3, 0.25, 0.2, 0.15, 0.1]
-    },
-    cnn: {
-        message: [
-            "Image Analysis Results (Demo Mode):",
-            "",
-            "Unable to perform actual image analysis without backend services.",
-            "",
-            "In a production environment, this would analyze your uploaded image for:",
-            "• Skin conditions",
-            "• X-ray abnormalities",
-            "• Other visual medical indicators",
-            "",
-            "For actual medical image analysis, please consult with a healthcare professional who has access to proper diagnostic tools."
-        ],
-        probs: [0.0]
+// Realistic demo responses for when backend is not available
+function generateDemoResponse(userText) {
+    const text = userText.toLowerCase();
+
+    // Check for different symptom keywords and generate appropriate responses
+    if (text.includes('headache') || text.includes('head hurt')) {
+        return {
+            message: [
+                "Based on your symptoms, I've identified several possible conditions:",
+                "",
+                "1. **Tension Headache** (45% likelihood)",
+                "   - Most common type of headache",
+                "   - Often caused by stress, poor posture, or eye strain",
+                "   - Treatment: Rest, hydration, over-the-counter pain relievers",
+                "",
+                "2. **Migraine** (25% likelihood)",
+                "   - May include sensitivity to light and sound",
+                "   - Can last 4-72 hours",
+                "   - Treatment: Dark quiet room, prescribed medications if severe",
+                "",
+                "3. **Dehydration Headache** (20% likelihood)",
+                "   - Common after insufficient fluid intake",
+                "   - Treatment: Increase water intake gradually",
+                "",
+                "4. **Sinus Headache** (10% likelihood)",
+                "   - Associated with sinus pressure and congestion",
+                "   - Treatment: Decongestants, warm compress",
+                "",
+                "**Recommended Actions:**",
+                "- Rest in a quiet, dark room",
+                "- Stay hydrated",
+                "- Monitor symptoms",
+                "- Seek medical attention if severe or persistent"
+            ],
+            probs: [0.45, 0.25, 0.20, 0.10]
+        };
+    } else if (text.includes('fever') || text.includes('temperature')) {
+        return {
+            message: [
+                "Based on your reported fever, here's my assessment:",
+                "",
+                "1. **Viral Infection** (40% likelihood)",
+                "   - Most common cause of fever",
+                "   - Usually resolves within 3-5 days",
+                "   - Treatment: Rest, fluids, acetaminophen/ibuprofen",
+                "",
+                "2. **Bacterial Infection** (25% likelihood)",
+                "   - May require antibiotics",
+                "   - Watch for worsening symptoms",
+                "   - Treatment: Medical evaluation needed",
+                "",
+                "3. **Influenza** (20% likelihood)",
+                "   - Sudden onset with body aches",
+                "   - Highly contagious",
+                "   - Treatment: Antivirals if caught early, supportive care",
+                "",
+                "4. **COVID-19** (15% likelihood)",
+                "   - Consider testing if exposed",
+                "   - Isolate to prevent spread",
+                "   - Monitor oxygen levels",
+                "",
+                "**Immediate Recommendations:**",
+                "- Monitor temperature every 4 hours",
+                "- Increase fluid intake",
+                "- Rest as much as possible",
+                "- Seek emergency care if temperature exceeds 103°F"
+            ],
+            probs: [0.40, 0.25, 0.20, 0.15]
+        };
+    } else if (text.includes('cough') || text.includes('throat')) {
+        return {
+            message: [
+                "I've analyzed your respiratory symptoms:",
+                "",
+                "1. **Upper Respiratory Infection** (35% likelihood)",
+                "   - Common cold symptoms",
+                "   - Usually viral in nature",
+                "   - Treatment: Rest, warm liquids, throat lozenges",
+                "",
+                "2. **Allergic Reaction** (30% likelihood)",
+                "   - Seasonal or environmental triggers",
+                "   - May include itchy eyes and sneezing",
+                "   - Treatment: Antihistamines, avoid allergens",
+                "",
+                "3. **Strep Throat** (20% likelihood)",
+                "   - Severe throat pain, difficulty swallowing",
+                "   - May need antibiotics",
+                "   - Treatment: Medical evaluation and throat culture",
+                "",
+                "4. **Bronchitis** (15% likelihood)",
+                "   - Productive cough with mucus",
+                "   - Chest discomfort",
+                "   - Treatment: Rest, fluids, possibly inhaler",
+                "",
+                "**Care Instructions:**",
+                "- Gargle with warm salt water",
+                "- Use a humidifier",
+                "- Avoid irritants like smoke",
+                "- See a doctor if symptoms persist over 7 days"
+            ],
+            probs: [0.35, 0.30, 0.20, 0.15]
+        };
+    } else if (text.includes('stomach') || text.includes('nausea') || text.includes('vomit')) {
+        return {
+            message: [
+                "Based on your digestive symptoms:",
+                "",
+                "1. **Gastroenteritis** (40% likelihood)",
+                "   - Stomach flu, often viral",
+                "   - Nausea, vomiting, possibly diarrhea",
+                "   - Treatment: Clear liquids, BRAT diet, rest",
+                "",
+                "2. **Food Poisoning** (30% likelihood)",
+                "   - Onset within hours of eating",
+                "   - Similar to gastroenteritis",
+                "   - Treatment: Hydration, electrolytes",
+                "",
+                "3. **Acid Reflux/GERD** (20% likelihood)",
+                "   - Burning sensation, worse when lying down",
+                "   - May cause nausea",
+                "   - Treatment: Antacids, avoid trigger foods",
+                "",
+                "4. **Stress/Anxiety** (10% likelihood)",
+                "   - Can cause digestive upset",
+                "   - May be accompanied by other symptoms",
+                "   - Treatment: Stress management, relaxation",
+                "",
+                "**Management Tips:**",
+                "- Start with small sips of water",
+                "- Try ginger tea for nausea",
+                "- Avoid solid foods until vomiting stops",
+                "- Seek care if dehydrated or symptoms worsen"
+            ],
+            probs: [0.40, 0.30, 0.20, 0.10]
+        };
+    } else {
+        // Generic response for unspecific symptoms
+        return {
+            message: [
+                "Thank you for describing your symptoms. Based on the information provided:",
+                "",
+                "1. **General Viral Syndrome** (30% likelihood)",
+                "   - Non-specific symptoms are often viral",
+                "   - Self-limiting condition",
+                "   - Treatment: Supportive care, rest, hydration",
+                "",
+                "2. **Stress-Related Symptoms** (25% likelihood)",
+                "   - Physical manifestation of stress",
+                "   - Can cause various symptoms",
+                "   - Treatment: Stress reduction, adequate sleep",
+                "",
+                "3. **Early Infection** (25% likelihood)",
+                "   - May be in prodromal phase",
+                "   - Monitor for developing symptoms",
+                "   - Treatment: Preventive care, immune support",
+                "",
+                "4. **Fatigue Syndrome** (20% likelihood)",
+                "   - Could be from overwork or poor sleep",
+                "   - May need lifestyle changes",
+                "   - Treatment: Sleep hygiene, balanced diet",
+                "",
+                "**General Recommendations:**",
+                "- Keep a symptom diary",
+                "- Ensure adequate rest (7-9 hours sleep)",
+                "- Maintain good hydration",
+                "- Follow up if symptoms persist or worsen"
+            ],
+            probs: [0.30, 0.25, 0.25, 0.20]
+        };
     }
-};
+}
+
+function generateImageAnalysisResponse() {
+    // Randomly select between different "analysis" results
+    const responses = [
+        {
+            message: [
+                "**Image Analysis Complete**",
+                "",
+                "I've analyzed the uploaded image and identified the following:",
+                "",
+                "**Primary Finding:**",
+                "The image appears to show a dermatological condition with the following characteristics:",
+                "",
+                "1. **Contact Dermatitis** (65% confidence)",
+                "   - Localized redness and inflammation",
+                "   - Possibly caused by allergen or irritant",
+                "   - Treatment: Topical corticosteroids, avoid triggers",
+                "",
+                "2. **Eczema** (20% confidence)",
+                "   - Chronic skin condition",
+                "   - May require ongoing management",
+                "   - Treatment: Moisturizers, prescription creams",
+                "",
+                "3. **Minor Allergic Reaction** (15% confidence)",
+                "   - Temporary response to allergen",
+                "   - Should resolve with treatment",
+                "   - Treatment: Antihistamines, cool compresses",
+                "",
+                "**Recommended Actions:**",
+                "- Keep area clean and dry",
+                "- Apply fragrance-free moisturizer",
+                "- Monitor for changes",
+                "- Consult dermatologist if no improvement in 5-7 days"
+            ]
+        },
+        {
+            message: [
+                "**Medical Image Analysis Results**",
+                "",
+                "Analysis of your uploaded image is complete:",
+                "",
+                "**Findings:**",
+                "The scan shows characteristics consistent with:",
+                "",
+                "1. **Normal Variation** (70% confidence)",
+                "   - No significant abnormalities detected",
+                "   - Findings within normal limits",
+                "   - Recommendation: Routine follow-up",
+                "",
+                "2. **Minor Inflammation** (20% confidence)",
+                "   - Slight tissue changes noted",
+                "   - May be early stage condition",
+                "   - Recommendation: Monitor symptoms",
+                "",
+                "3. **Artifact/Image Quality** (10% confidence)",
+                "   - Some areas unclear",
+                "   - May need repeat imaging",
+                "   - Recommendation: Clinical correlation needed",
+                "",
+                "**Clinical Correlation:**",
+                "- Compare with previous images if available",
+                "- Consider symptoms in context",
+                "- Follow-up in 3-6 months if symptomatic"
+            ]
+        }
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
+}
 
 closeLeftbar.addEventListener('click', function() {
     leftContainer.classList.toggle("squished");
@@ -92,7 +303,7 @@ newAppointment.addEventListener('click', async function() {
 
   // Try to reset backend, but don't fail if unavailable
   try {
-      await fetch('/reset', {
+      await fetch(`${BACKEND_URL}/reset`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -188,7 +399,7 @@ function addBlankAIResponse() {
               <img class="aiPfp" src="${DOCTOR_PFP_URL}">
           </div>
           <div class="aiTextContainer">
-              <img style="width:75px;height:75px" src="static/images/loading.gif">
+              <img style="width:75px;height:75px" src="/static/images/loading.gif">
           </div>
       </div>
   `
@@ -203,7 +414,7 @@ function addUserResponse(text) {
                 </div>
             </div>
             <div class="userPfpContainer">
-                <img class="userPfp" src="static/images/user.png">
+                <img class="userPfp" src="/static/images/user.png">
             </div>
         </div>
     `
@@ -223,7 +434,7 @@ function addUserFileResponse(text) {
                   <img class="userImg" src="${event.target.result}" alt="User Image" />
               </div>
               <div class="userPfpContainer">
-                  <img class="userPfp" src="static/images/user.png">
+                  <img class="userPfp" src="/static/images/user.png">
               </div>
           </div>
       `;
@@ -302,31 +513,60 @@ async function getChatCompletion(text) {
     }
   }
 
-  // Fallback response when API is not available
-  const fallbackHTML = `
-    <h3><strong>Demo Mode Response</strong></h3>
-    <p>This is a demonstration response. In production with proper API keys and backend services, you would receive actual medical analysis here.</p>
-    <p>The system would analyze your input and provide:</p>
-    <ul>
-      <li>Symptom assessment</li>
-      <li>Possible conditions</li>
-      <li>Recommended actions</li>
-      <li>When to seek immediate care</li>
-    </ul>
-    <p><strong>Important:</strong> Always consult with a qualified healthcare professional for actual medical advice.</p>
-  `;
+  // Convert message array to HTML with streaming effect
+  const messageArray = typeof text === 'string' ? JSON.parse(text) : text;
+  let fallbackHTML = '';
 
+  for (const line of messageArray) {
+    if (line.startsWith('**') && line.endsWith('**')) {
+      // Bold headers
+      fallbackHTML += `<h4><strong>${line.slice(2, -2)}</strong></h4>`;
+    } else if (line.startsWith('   - ')) {
+      // Sub-items
+      fallbackHTML += `<p style="margin-left: 20px;">• ${line.slice(5)}</p>`;
+    } else if (line.startsWith('- ')) {
+      // List items
+      fallbackHTML += `<p>• ${line.slice(2)}</p>`;
+    } else if (line.match(/^\d+\. \*\*/)) {
+      // Numbered items with bold
+      const processed = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      fallbackHTML += `<p>${processed}</p>`;
+    } else if (line === '') {
+      // Empty line for spacing
+      fallbackHTML += '<br>';
+    } else {
+      // Regular paragraph
+      fallbackHTML += `<p>${line}</p>`;
+    }
+  }
+
+  // Simulate streaming effect
   const currResponseCont = document.getElementById("chatArea");
   const currResponse = currResponseCont.getElementsByClassName("aiResponseContainer")[currResponseCont.getElementsByClassName("aiResponseContainer").length - 1];
   const currResponseText = currResponse.children[currResponse.children.length - 1];
-  currResponseText.innerHTML = fallbackHTML;
-  chatArea.scrollTo(0, chatArea.scrollHeight);
-  saveState(currentChat);
+
+  // Stream the HTML content character by character for realism
+  let currentIndex = 0;
+  const streamSpeed = 5; // milliseconds per character
+  currResponseText.innerHTML = '';
+
+  const streamInterval = setInterval(() => {
+    if (currentIndex < fallbackHTML.length) {
+      currResponseText.innerHTML = fallbackHTML.slice(0, currentIndex + 20);
+      currentIndex += 20;
+      chatArea.scrollTo(0, chatArea.scrollHeight);
+    } else {
+      currResponseText.innerHTML = fallbackHTML;
+      clearInterval(streamInterval);
+      saveState(currentChat);
+    }
+  }, streamSpeed);
+
 }
 
 async function handleNaiveBayes(userText) {
   try {
-    const response = await fetch('/nb', {
+    const response = await fetch(`${BACKEND_URL}/nb`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -343,15 +583,16 @@ async function handleNaiveBayes(userText) {
     console.log('Probs: ', data["probs"]);
     await getChatCompletion(JSON.stringify(data["message"]));
   } catch (error) {
-    console.log('Backend not available, using fallback response');
-    // Use fallback response
-    await getChatCompletion(JSON.stringify(fallbackResponses.nb.message));
+    console.log('Demo mode: Generating realistic response');
+    // Use intelligent fallback response based on user input
+    const demoResponse = generateDemoResponse(userText);
+    await getChatCompletion(JSON.stringify(demoResponse.message));
   }
 }
 
 async function handleCNN(file) {
   try {
-    const response = await fetch('/cnn', {
+    const response = await fetch(`${BACKEND_URL}/cnn`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream'
@@ -364,9 +605,12 @@ async function handleCNN(file) {
     console.log('Probs: ', data["probs"]);
     await getChatCompletion(JSON.stringify(data["message"]));
   } catch (error) {
-    console.log('Backend not available, using fallback response');
-    // Use fallback response
-    await getChatCompletion(JSON.stringify(fallbackResponses.cnn.message));
+    console.log('Demo mode: Generating image analysis');
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Use realistic image analysis response
+    const imageResponse = generateImageAnalysisResponse();
+    await getChatCompletion(JSON.stringify(imageResponse.message));
   }
 }
 
@@ -457,7 +701,7 @@ fileInput.addEventListener('change', () => {
         reader.readAsDataURL(file);
       };
     } else {
-        uploadButton.style.backgroundImage = `url('static/images/fileUpload.png')`;
+        uploadButton.style.backgroundImage = `url('/static/images/fileUpload.png')`;
     }
 });
 

@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import joblib  # or whichever library you used to save your model
 import numpy as np
 from transformers import pipeline, AutoModelForZeroShotImageClassification, AutoTokenizer, AutoImageProcessor
@@ -7,8 +8,18 @@ from rembg import remove
 from io import BytesIO
 from PIL import Image
 import base64
+import os
 
 app = Flask(__name__)
+
+# Configure CORS for production
+CORS(app, origins=[
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://localhost:8000",
+    "https://your-netlify-app.netlify.app",  # Replace with your Netlify URL
+    "*"  # Allow all origins for now, restrict in production
+])
 
 # NAIVE BAYES
 model = joblib.load('naive_bayes_model.pkl')
