@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MedAI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/index.css">
+    <script src="static/js/index-static.js" type="module"></script>
+    <script src="static/js/bg.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="bg">
+        <canvas></canvas>
+        <canvas></canvas>
+        <canvas></canvas>
+    </div>
+    <div id="leftContainer" class="squished">
+        <p id="leftbarTitle">Your Appointments</p>
+        <div id=appointmentsContainer>
+
+
+        </div>
+    </div>
+    <div id="buttons">
+        <button id="closeLeftbar" class="leftbarButton"></button>
+        <button id="newAppointment" class="leftbarButton"></button>
+    </div>
+
+    <div id="title">Med AI</div>
+    <div id="subtitle">Date</div>
+    <div id="chatContainer">
+        <div id="chatArea">
+            <div class="aiResponseContainer">
+                <div class="aiPfpContainer">
+                    <img class=aiPfp src="static/images/doctorPfp.png">
+                </div>
+                <div class="aiTextContainer">
+                    <p>Hello! How can I assist you today regarding health or medical information?</p>
+                </div>
+            </div>
+        </div>
+        <div id="chatInputContainer">
+            <textarea id="chatInput" rows="1" placeholder="Ask doctor..."></textarea>
+            <div id="imagePreviewContainer"></div>
+            <input type="file" id="fileInput" style="display: none;" accept="image/*">
+            <button id="fileUpload"></button>
+            <button id="enterResponse"></button>
+        </div>
+    </div>
+
+    <div id="overlayContainer">
+        <div id="overlay"></div>
+        <div id="popupImageContainer">
+            <img id="popupImage" src="">
+            <button id="closePopup"></button>
+        </div>
+    </div>
+    <div id="aiThinking">
+        <p>AI is thinking...</p>
+        <div class="spinner"></div>
+    </div>
+</body>
+</html>
