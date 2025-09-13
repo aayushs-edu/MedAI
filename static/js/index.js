@@ -1,10 +1,13 @@
-const apiKey = process.env['OPENAI_API_KEY'];
+
+const apiKey = process.env.OPENAI_API_KEY;
 
 const closeLeftbar = document.getElementById("closeLeftbar");
 const newAppointment = document.getElementById("newAppointment");
 const leftContainer = document.getElementById("leftContainer");
 const chatArea = document.getElementById("chatArea");
 const appointmentsContainer = document.getElementById("appointmentsContainer");
+const langSelect = document.getElementById("languageDropdown");
+var lang = langSelect.value;
 
 const subtitle = document.getElementById("subtitle");
 subtitle.textContent = new Date(Date.now()).toDateString().split(' ').slice(1).join(' ');
@@ -60,7 +63,7 @@ async function getTitle(text) {
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: "You are a medical doctor. Come up with a brief 3 - 5 word title for the appointment given the user's text." },
+            { role: "system", content: `You are a medical doctor. Come up with a brief 3 - 5 word title for the appointment given the user's text.` },
             { role: "user", content: text }
           ]
         })
@@ -176,7 +179,7 @@ async function getChatCompletion(text) {
     body: JSON.stringify({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content. If you get something not medical related, please ask for more details or a clearer image(as the user may give an image)." },
+        { role: "system", content: `You are a medical doctor giving your patient a checkup. Respond based off the text given. If given possible diagnoses, thoroughly explain each illness in order of likelihood and possible treatments. Generate responses in simple HTML format. Use <h3> or <h4> for subheadings and make them bold using <strong> or <b> tags when appropriate. Do not use <h1> or any large headings. For normal text, use <p> for paragraphs and <ul> with <li> for list items. Only use bold formatting (<strong> or <b>) where necessary for emphasis. Do not use markdown-style formatting like **bold**. Do not use <div>, <html>, <head>, <body>, or <!DOCTYPE html> tags. Only output the inner HTML content. If you get something not medical related, please ask for more details or a clearer image(as the user may give an image).` },
         { role: "user", content: text }
       ],
       stream: true
@@ -424,6 +427,9 @@ enterButton.addEventListener('click', async function() {
   
 });
 
-
+langSelect.addEventListener('change', function() {
+    lang = langSelect.value;
+    console.log(`Language selected: ${lang}`);
+});
 
 
